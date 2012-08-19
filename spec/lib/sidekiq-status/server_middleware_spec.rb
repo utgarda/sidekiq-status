@@ -23,6 +23,16 @@ describe Sidekiq::Status::ServerMiddleware do
       redis.hget(job_id, :status).should == 'complete'
     end
 
+    it "sets failed status" do
+      SecureRandom.should_receive(:uuid).once.and_return(job_id)
+      start_server do
+        capture_status_updates(3) {
+          FailingJob.perform_async.should == job_id
+        }.should == [job_id]*3
+      end
+      redis.hget(job_id, :status).should == 'failed'
+    end
+
     it "sets status hash ttl" do
       SecureRandom.should_receive(:uuid).once.and_return(job_id)
       StubJob.perform_async(:arg1 => 'val1').should == job_id

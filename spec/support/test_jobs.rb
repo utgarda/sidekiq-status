@@ -22,3 +22,9 @@ class ConfirmationJob < StubJob
     end
   end
 end
+
+class FailingJob < StubJob
+  def perform
+    raise StandardError
+  end
+end
