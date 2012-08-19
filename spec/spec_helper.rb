@@ -12,6 +12,35 @@ Sidekiq.configure_client do |config|
   end
 end
 
+def confirmations_thread(messages_limit, *channels)
+  parent = Thread.current
+  thread = Thread.new {
+    confirmations = []
+    Sidekiq.redis do |conn|
+      conn.subscribe *channels do |on|
+        on.subscribe do |ch, subscriptions|
+          if subscriptions == channels.size
+            sleep 0.1 while parent.status != "sleep"
+            parent.run
+          end
+        end
+        on.message do |ch, msg|
+          confirmations << msg
+          conn.unsubscribe if confirmations.length >= messages_limit
+        end
+      end
+    end
+    confirmations
+  }
+  Thread.stop
+  yield if block_given?
+  thread
+end
+
+def capture_status_updates(n, &block)
+  confirmations_thread(n, "status_updates", &block).value
+end
+
 def start_server()
   pid = Process.fork do
     $stdout.reopen File::NULL, 'w'
@@ -31,7 +60,7 @@ def start_server()
 
   sleep 0.1
   Process.kill 'TERM', pid
-  Timeout::timeout(10) { Process.wait pid }
-rescue Timeout::Error
+  Timeout::timeout(10) { Process.wait pid } rescue Timeout::Error
+ensure
   Process.kill 'KILL', pid rescue "OK" # it's OK if the process is gone already
 end

@@ -8,12 +8,13 @@ class StubJob
   end
 end
 
-class ConfirmationJob
-  include Sidekiq::Worker
-  include Sidekiq::Status::Worker
+class LongJob < StubJob
+  def perform(*args)
+    sleep args[0] || 1
+  end
+end
 
-  sidekiq_options 'retry' => 'false'
-
+class ConfirmationJob < StubJob
   def perform(*args)
     Sidekiq.redis do |conn|
       puts "job_messages_#{id}"

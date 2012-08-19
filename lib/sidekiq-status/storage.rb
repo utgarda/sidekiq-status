@@ -18,4 +18,14 @@ module Sidekiq::Status::Storage
       answers[0]
     end
   end
+
+  # Gets a single valued from job status hash
+  # @param [String] id job id
+  # @param [String] Symbol field fetched field name
+  # @return [String] Redis operation status code
+  def read_field_for_id(uuid, field)
+    Sidekiq.redis do |conn|
+      conn.hmget(uuid, field)[0]
+    end
+  end
 end

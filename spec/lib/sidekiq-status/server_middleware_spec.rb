@@ -6,30 +6,17 @@ describe Sidekiq::Status::ServerMiddleware do
   let!(:job_id) { SecureRandom.uuid }
 
   # Clean Redis before each test
-  before { redis.flushall }
-
-  def confirmations_thread(messages_limit, *channels)
-    Thread.new {
-      confirmations = []
-      Sidekiq.redis do |conn|
-        conn.subscribe *channels do |on|
-          on.message do |ch, msg|
-            confirmations << msg
-            conn.unsubscribe if confirmations.length == messages_limit
-          end
-        end
-      end
-      confirmations
-    }
-  end
+  # Seems like flushall has no effect on recently published messages,
+  # so we should wait till they expire
+  before { redis.flushall; sleep 0.1 }
 
   describe "#call" do
     it "sets working/complete status" do
-      thread = confirmations_thread 3, "status_updates", "job_messages_#{job_id}"
+      thread = confirmations_thread 4, "status_updates", "job_messages_#{job_id}"
       SecureRandom.should_receive(:uuid).once.and_return(job_id)
       start_server do
         ConfirmationJob.perform_async(:arg1 => 'val1').should == job_id
-        thread.value.should =~ [job_id,
+        thread.value.should == [job_id, job_id,
                                 "while in #perform, status = working",
                                 job_id]
       end
