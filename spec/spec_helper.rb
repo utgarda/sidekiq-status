@@ -48,8 +48,8 @@ def start_server()
     require 'sidekiq/cli'
     Sidekiq.options[:queues] << 'default'
     Sidekiq.configure_server do |config|
+      config.redis = {:url => 'redis://localhost:6379'}
       config.server_middleware do |chain|
-        config.redis = {:url => 'redis://localhost:6379'}
         chain.add Sidekiq::Status::ServerMiddleware
       end
     end

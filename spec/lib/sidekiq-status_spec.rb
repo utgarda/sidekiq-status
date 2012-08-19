@@ -4,6 +4,7 @@ describe Sidekiq::Status do
 
   let!(:redis) { Sidekiq.redis { |conn| conn } }
   let!(:job_id) { SecureRandom.uuid }
+  let!(:job_id_1) { SecureRandom.uuid }
 
   # Clean Redis before each test
   # Seems like flushall has no effect on recently published messages,
@@ -23,4 +24,32 @@ describe Sidekiq::Status do
       Sidekiq::Status.get(job_id).should == 'complete'
     end
   end
+
+  context "keeps normal Sidekiq functionality" do
+    it "does jobs with and without status processing" do
+      SecureRandom.should_receive(:uuid).twice.and_return(job_id, job_id_1)
+      start_server do
+        capture_status_updates(6) {
+          StubJob.perform_async.should == job_id
+          NoStatusConfirmationJob.perform_async(1)
+          StubJob.perform_async.should == job_id_1
+          NoStatusConfirmationJob.perform_async(2)
+        }.should =~ [job_id, job_id_1] * 3
+      end
+      redis.mget('NoStatusConfirmationJob_1', 'NoStatusConfirmationJob_2').should == %w(done)*2
+      Sidekiq::Status.get(job_id).should == 'complete'
+      Sidekiq::Status.get(job_id_1).should == 'complete'
+    end
+
+    it "retries failed jobs" do
+      SecureRandom.should_receive(:uuid).once.and_return(job_id)
+      start_server do
+        capture_status_updates(5) {
+          RetriedJob.perform_async().should == job_id
+        }.should == [job_id] * 5
+      end
+      Sidekiq::Status.get(job_id).should == 'complete'
+    end
+  end
+
 end
