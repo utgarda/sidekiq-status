@@ -16,5 +16,12 @@ module Sidekiq
     def self.get(id)
       read_field_for_id(id, :status)
     end
+
+    # Get all status fields for a job
+    # @params [String] id job id returned by async_perform
+    # @return [Hash] hash of all fields stored for the job
+    def self.get_all(id)
+      read_hash_for_id(id)
+    end
   end
 end
