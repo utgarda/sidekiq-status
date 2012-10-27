@@ -9,11 +9,11 @@ module Sidekiq::Status
       @expiration = opts[:expiration]
     end
 
-    # Takes out the first job argument to use as id
+    # Uses sidekiq's internal jid as id
     # puts :working status into Redis hash
     # initializes worker instance with id
     #
-    # Exception handler sets :failed status, re-inserts worker it to job args and re-throws the exception
+    # Exception handler sets :failed status, re-inserts worker and re-throws the exception
     # Worker::Stopped exception type are processed separately - :stopped status is set, no re-throwing
     #
     # @param [Worker] worker worker instance, processed here if its class includes Status::Worker

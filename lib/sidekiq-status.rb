@@ -8,7 +8,7 @@ module Sidekiq
   module Status
     extend Storage
     DEFAULT_EXPIRY = 60 * 30
-    UUID_REGEXP = /[0-9A-F]{24}/i #RegEx for SecureRandom.hex(12)
+    UUID_REGEXP = /[0-9A-F]{24}/i #RegEx for SecureRandom.hex(12) which is the format Sidekiq uses for its jid
 
     # Job status by id
     # @param [String] id job id returned by async_perform
