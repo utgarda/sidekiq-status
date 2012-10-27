@@ -8,7 +8,7 @@ module Sidekiq::Status
     # @param [String] queue the queue's name
     def call(worker_class, msg, queue)
       if worker_class.include? Worker
-        store_for_id(msg['args'][0], :status => :queued)
+        store_for_id(msg['jid'], :status => :queued)
       end
       yield
     end
