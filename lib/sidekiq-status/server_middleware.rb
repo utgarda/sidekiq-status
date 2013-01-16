@@ -9,21 +9,21 @@ module Sidekiq::Status
       @expiration = opts[:expiration]
     end
 
-    # Takes out the first job argument to use as id
+    # Uses sidekiq's internal jid as id
     # puts :working status into Redis hash
     # initializes worker instance with id
     #
-    # Exception handler sets :failed status, re-inserts worker it to job args and re-throws the exception
+    # Exception handler sets :failed status, re-inserts worker and re-throws the exception
     # Worker::Stopped exception type are processed separately - :stopped status is set, no re-throwing
     #
     # @param [Worker] worker worker instance, processed here if its class includes Status::Worker
-    # @param [Array] msg job args, first of them used as job id, should have uuid format
+    # @param [Array] msg job args, should have jid format
     # @param [String] queue queue name
     def call(worker, msg, queue)
       if worker.is_a? Worker
-        worker.id = msg['args'].shift
+        worker.id = msg['jid']
         unless worker.id.is_a?(String) && UUID_REGEXP.match(worker.id)
-          raise ArgumentError, "First job argument for a #{worker.class.name} should have uuid format"
+          raise ArgumentError, "First job argument for a #{worker.class.name} should have jid format"
         end
         worker.store 'status' => 'working'
         yield
@@ -36,7 +36,6 @@ module Sidekiq::Status
     rescue
       if worker.is_a? Worker
         worker.store 'status' => 'failed'
-        msg['args'].unshift worker.id
       end
       raise
     ensure

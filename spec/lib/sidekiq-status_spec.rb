@@ -3,8 +3,8 @@ require 'spec_helper'
 describe Sidekiq::Status do
 
   let!(:redis) { Sidekiq.redis { |conn| conn } }
-  let!(:job_id) { SecureRandom.uuid }
-  let!(:job_id_1) { SecureRandom.uuid }
+  let!(:job_id) { SecureRandom.hex(12) }
+  let!(:job_id_1) { SecureRandom.hex(12) }
 
   # Clean Redis before each test
   # Seems like flushall has no effect on recently published messages,
@@ -13,7 +13,7 @@ describe Sidekiq::Status do
 
   describe ".get" do
     it "gets job status by id" do
-      SecureRandom.should_receive(:uuid).once.and_return(job_id)
+      SecureRandom.should_receive(:hex).once.and_return(job_id)
 
       start_server do
         capture_status_updates(2) {
@@ -27,7 +27,7 @@ describe Sidekiq::Status do
 
   context "keeps normal Sidekiq functionality" do
     it "does jobs with and without status processing" do
-      SecureRandom.should_receive(:uuid).twice.and_return(job_id, job_id_1)
+      SecureRandom.should_receive(:hex).exactly(4).times.and_return(job_id, job_id_1)
       start_server do
         capture_status_updates(6) {
           StubJob.perform_async.should == job_id
@@ -42,7 +42,7 @@ describe Sidekiq::Status do
     end
 
     it "retries failed jobs" do
-      SecureRandom.should_receive(:uuid).once.and_return(job_id)
+      SecureRandom.should_receive(:hex).once.and_return(job_id)
       start_server do
         capture_status_updates(5) {
           RetriedJob.perform_async().should == job_id
