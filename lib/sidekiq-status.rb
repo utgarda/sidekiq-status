@@ -8,7 +8,7 @@ module Sidekiq
   module Status
     extend Storage
     DEFAULT_EXPIRY = 60 * 30
-    STATUS = %s(queued working complete stopped failed).map(&:to_sym).frozen
+    STATUS = %w(queued working complete stopped failed).map(&:to_sym).freeze
 
     [:status, :num, :total, :message].each do |name|
       class_eval(<<-END, __FILE__, __LINE__)
@@ -26,6 +26,7 @@ module Sidekiq
       END
     end
 
+    # TODO make #get synonym to #read_field_for_id and use #status instead of #get
     # Job status by id
     # @param [String] id job id returned by async_perform
     # @return [String] job status, possible values are in STATUS
