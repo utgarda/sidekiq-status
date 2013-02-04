@@ -11,6 +11,8 @@ gem install sidekiq-status
 
 ## Usage
 
+### Configuration
+
 Configure your middleware chains, lookup [Middleware usage](https://github.com/mperham/sidekiq/wiki/Middleware)
 on Sidekiq wiki for more info.
 
@@ -26,18 +28,16 @@ end
 
 Sidekiq.configure_server do |config|
   config.server_middleware do |chain|
-    chain.add Sidekiq::Status::ServerMiddleware
+    chain.add Sidekiq::Status::ServerMiddleware, expiration: 30.minutes # default
   end
 end
 ```
 
-When defining those jobs you want to track later, include one more module. Jobs defined without Sidekiq::Status::Worker
-will be processed as usual.
+After that you can use your jobs as usual and only include `Sidekiq::Status::Worker` module if you want additional functionality of tracking progress and passing any data from job to client.
 
 ``` ruby
 class MyJob
   include Sidekiq::Worker
-  include Sidekiq::Status::Worker
 
   def perform(*args)
   # your code goes here
@@ -45,16 +45,44 @@ class MyJob
 end
 ```
 
+### Retrieving status
+
 Query for job status any time later:
 
 ``` ruby
 job_id = MyJob.perform_async(*args)
 # "queued", "working", "complete" or "failed" , nil after expiry (30 minutes)
 status = Sidekiq::Status::get(job_id)
+Sidekiq::Status::queued?   job_id
+Sidekiq::Status::working?  job_id
+Sidekiq::Status::complete? job_id
+Sidekiq::Status::failed?   job_id
+```
+
+### Tracking progress, saving and retrieveing data associated with job
+
+``` ruby
+class MyJob
+  include Sidekiq::Worker
+  include Sidekiq::Status::Worker # Important!
+
+  def perform(*args)
+    # your code goes here
+    at 5, 100, "Almost done"
+    store vino: 'veritas'
+  end
+end
+
+job_id = MyJob.perform_async(*args)
+data = Sidekiq::Status::get_all job_id
+data # => {status: 'complete', update_time: 1360006573, vino: 'veritas'}
+Sidekiq::Status::num     job_id #=> 5
+Sidekiq::Status::total   job_id #=> 100
+Sidekiq::Status::message job_id #=> "Almost done"
+Sidekiq::Status::pct_complete job_id #=> 5
 ```
 
 ### Features coming
-* Progress tracking, messages from running jobs
 * Stopping jobs by id
 * Minimal web UI
 
