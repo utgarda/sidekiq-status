@@ -12,7 +12,7 @@ module Sidekiq
 
     [:status, :num, :total, :message].each do |name|
       class_eval(<<-END, __FILE__, __LINE__)
-        def #{name}(job_id)
+        def self.#{name}(job_id)
           read_field_for_id job_id, :#{name}
         end
       END
@@ -20,7 +20,7 @@ module Sidekiq
 
     STATUS.each do |name|
       class_eval(<<-END, __FILE__, __LINE__)
-        def #{name}?(job_id)
+        def self.#{name}?(job_id)
           get(job_id).to_sym == :#{name}
         end
       END
