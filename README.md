@@ -1,5 +1,7 @@
 # Sidekiq::Status
 
+[![Code Climate](https://codeclimate.com/github/utgarda/sidekiq-status.png)](https://codeclimate.com/github/utgarda/sidekiq-status)
+
 An extension to [Sidekiq](http://github.com/mperham/sidekiq) message processing to track your jobs. Inspired
 by [resque-status](http://github.com/quirkey/resque-status) and mostly copying its features, using Sidekiq's middleware.
 
@@ -58,4 +60,4 @@ status = Sidekiq::Status::get(job_id)
 
 ## License
 MIT License , see LICENSE for more details.
-© 2012 Evgeniy Tsvigun
+© 2012 - 2013 Evgeniy Tsvigun
