@@ -1,6 +1,8 @@
 require "rspec"
 
 require 'sidekiq'
+require 'sidekiq/processor'
+require 'sidekiq/manager'
 require 'sidekiq-status'
 
 
@@ -48,7 +50,7 @@ def start_server()
     require 'sidekiq/cli'
     Sidekiq.options[:queues] << 'default'
     Sidekiq.configure_server do |config|
-      config.redis = {:url => 'redis://localhost:6379'}
+      config.redis = Sidekiq::RedisConnection.create
       config.server_middleware do |chain|
         chain.add Sidekiq::Status::ServerMiddleware
       end

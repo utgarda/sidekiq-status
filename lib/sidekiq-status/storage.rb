@@ -32,9 +32,9 @@ module Sidekiq::Status::Storage
   # Gets the whole status hash from the job status
   # @param [String] id job id
   # @return [Hash] Hash stored in redis
-  def read_hash_for_id(uuid)
+  def read_hash_for_id(id)
     Sidekiq.redis do |conn|
-      conn.hmget(uuid)
+      conn.hgetall id
     end
   end
 end

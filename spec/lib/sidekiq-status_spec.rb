@@ -27,15 +27,17 @@ describe Sidekiq::Status do
 
   describe ".get_all" do
     it "gets the job hash by id" do
-      SecureRandom.should_receive(:uuid).once.and_return(job_id)
+      SecureRandom.should_receive(:hex).once.and_return(job_id)
 
       start_server do
         capture_status_updates(2) {
           LongJob.perform_async(1).should == job_id
         }.should == [job_id]*2
-        Sidekiq::Status.get_all(job_id).should eq("status" => "working")
+        (hash = Sidekiq::Status.get_all(job_id)).should include 'status' => 'working'
+        hash.should include 'update_time'
       end
-      Sidekiq::Status.get_all(job_id).should eq('status' => 'complete')
+      (hash = Sidekiq::Status.get_all(job_id)).should include 'status' => 'complete'
+      hash.should include 'update_time'
     end
   end
 
