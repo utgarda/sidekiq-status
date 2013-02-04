@@ -1,11 +1,13 @@
 module Sidekiq::Status
 # Should be in the server middleware chain
   class ServerMiddleware
+    include Storage
+
     # Parameterized initialization, use it when adding middleware to server chain
     # chain.add Sidekiq::Status::ServerMiddleware, :expiration => 60 * 5
     # @param [Hash] opts middleware initialization options
     # @option opts [Fixnum] :expiration ttl for complete jobs
-    def initialize(opts = {:expiration => 30 * 60})
+    def initialize(opts = {})
       @expiration = opts[:expiration]
     end
 
@@ -20,26 +22,14 @@ module Sidekiq::Status
     # @param [Array] msg job args, should have jid format
     # @param [String] queue queue name
     def call(worker, msg, queue)
-      if worker.is_a? Worker
-        worker.id = msg['jid']
-        unless worker.id.is_a?(String) && UUID_REGEXP.match(worker.id)
-          raise ArgumentError, "First job argument for a #{worker.class.name} should have jid format"
-        end
-        worker.store 'status' => 'working'
-        yield
-        worker.store 'status' => 'complete'
-      else
-        yield
-      end
+      store_status worker.jid, :working
+      yield
+      store_status worker.jid, :complete
     rescue Worker::Stopped
-      worker.store 'status' => 'stopped'
+      store_status worker.jid, :stopped, @expiration
     rescue
-      if worker.is_a? Worker
-        worker.store 'status' => 'failed'
-      end
+      store_status worker.jid, :failed,  @expiration
       raise
-    ensure
-      Sidekiq.redis { |conn| conn.expire worker.id, @expiration } if worker.is_a? Worker
     end
   end
 end

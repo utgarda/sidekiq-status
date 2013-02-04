@@ -8,13 +8,33 @@ module Sidekiq
   module Status
     extend Storage
     DEFAULT_EXPIRY = 60 * 30
-    UUID_REGEXP = /[0-9A-F]{24}/i #RegEx for SecureRandom.hex(12) which is the format Sidekiq uses for its jid
+    STATUS = %s(queued working complete stopped failed).map(&:to_sym).frozen
+
+    [:status, :num, :total, :message].each do |name|
+      class_eval(<<-END, __FILE__, __LINE__)
+        def #{name}(job_id)
+          read_field_for_id job_id, :#{name}
+        end
+      END
+    end
+
+    STATUS.each do |name|
+      class_eval(<<-END, __FILE__, __LINE__)
+        def #{name}?(job_id)
+          get(job_id).to_sym == :#{name}
+        end
+      END
+    end
 
     # Job status by id
     # @param [String] id job id returned by async_perform
-    # @return [String] job status, possible values: "queued" , "working" , "complete"
+    # @return [String] job status, possible values are in STATUS
     def self.get(id)
       read_field_for_id(id, :status)
+    end
+
+    def self.pct_complete(id)
+      (num / total) * 100
     end
 
     # Get all status fields for a job
