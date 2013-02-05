@@ -21,6 +21,7 @@ describe Sidekiq::Status::ServerMiddleware do
                                 job_id]
       end
       redis.hget(job_id, :status).should == 'complete'
+      Sidekiq::Status::complete?(job_id).should be_true
     end
 
     it "sets failed status" do
@@ -31,6 +32,7 @@ describe Sidekiq::Status::ServerMiddleware do
         }.should == [job_id]*3
       end
       redis.hget(job_id, :status).should == 'failed'
+      Sidekiq::Status::failed?(job_id).should be_true
     end
 
     it "sets status hash ttl" do

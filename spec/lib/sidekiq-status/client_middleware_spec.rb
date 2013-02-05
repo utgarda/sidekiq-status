@@ -13,6 +13,7 @@ describe Sidekiq::Status::ClientMiddleware do
       SecureRandom.should_receive(:hex).once.and_return(job_id)
       StubJob.perform_async(:arg1 => 'val1').should == job_id
       redis.hget(job_id, :status).should == 'queued'
+      Sidekiq::Status::queued?(job_id).should be_true
     end
 
     it "sets status hash ttl" do

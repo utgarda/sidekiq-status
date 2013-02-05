@@ -20,6 +20,11 @@ describe Sidekiq::Status do
           LongJob.perform_async(1).should == job_id
         }.should == [job_id]*2
         Sidekiq::Status.get(job_id).should == "working"
+        Sidekiq::Status::queued?(job_id).should be_false
+        Sidekiq::Status::working?(job_id).should be_true
+        Sidekiq::Status::failed?(job_id ).should be_false
+        Sidekiq::Status::complete?(job_id).should be_false
+        Sidekiq::Status::stopped?(job_id).should be_false
       end
       Sidekiq::Status.get(job_id).should == 'complete'
     end
