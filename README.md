@@ -52,8 +52,8 @@ Query for job status any time later:
 
 ``` ruby
 job_id = MyJob.perform_async(*args)
-# "queued", "working", "complete" or "failed" , nil after expiry (30 minutes)
-status = Sidekiq::Status::get(job_id)
+# :queued, :working, :complete or :failed , nil after expiry (30 minutes)
+status = Sidekiq::Status::status(job_id)
 Sidekiq::Status::queued?   job_id
 Sidekiq::Status::working?  job_id
 Sidekiq::Status::complete? job_id
@@ -69,14 +69,23 @@ class MyJob
 
   def perform(*args)
     # your code goes here
+
+    # the common idiom to track progress of your task
     at 5, 100, "Almost done"
+
+    # a way to associate data with your job
     store vino: 'veritas'
+
+    # a way of retrieving said data
+    # remember that retrieved data is always is String|nil
+    vino = retrieve :vino
   end
 end
 
 job_id = MyJob.perform_async(*args)
 data = Sidekiq::Status::get_all job_id
 data # => {status: 'complete', update_time: 1360006573, vino: 'veritas'}
+Sidekiq::Status::get     job_id, :vino #=> 'veritas'
 Sidekiq::Status::num     job_id #=> 5
 Sidekiq::Status::total   job_id #=> 100
 Sidekiq::Status::message job_id #=> "Almost done"
