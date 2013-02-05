@@ -1,6 +1,7 @@
 # Sidekiq::Status
 
 [![Code Climate](https://codeclimate.com/github/utgarda/sidekiq-status.png)](https://codeclimate.com/github/utgarda/sidekiq-status)
+[![Build Status](https://secure.travis-ci.org/utgarda/sidekiq-status.png)](http://travis-ci.org/utgarda/sidekiq-status)
 
 An extension to [Sidekiq](http://github.com/mperham/sidekiq) message processing to track your jobs. Inspired
 by [resque-status](http://github.com/quirkey/resque-status) and mostly copying its features, using Sidekiq's middleware.

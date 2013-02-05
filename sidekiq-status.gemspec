@@ -15,5 +15,6 @@ Gem::Specification.new do |gem|
   gem.version       = Sidekiq::Status::VERSION
 
   gem.add_dependency                  'sidekiq', '~> 2.7'
+  gem.add_development_dependency      'rake'
   gem.add_development_dependency      'rspec'
 end
