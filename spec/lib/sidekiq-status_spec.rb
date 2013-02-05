@@ -42,15 +42,15 @@ describe Sidekiq::Status do
   end
 
   context "keeps normal Sidekiq functionality" do
-    it "does jobs with and without status processing" do
-      SecureRandom.should_receive(:hex).exactly(4).times.and_return(job_id, job_id_1)
+    it "does jobs with and without included worker module" do
+      SecureRandom.should_receive(:hex).exactly(4).times.and_return(job_id, job_id, job_id_1, job_id_1)
       start_server do
-        capture_status_updates(6) {
+        capture_status_updates(12) {
           StubJob.perform_async.should == job_id
           NoStatusConfirmationJob.perform_async(1)
           StubJob.perform_async.should == job_id_1
           NoStatusConfirmationJob.perform_async(2)
-        }.should =~ [job_id, job_id_1] * 3
+        }.should =~ [job_id, job_id_1] * 6
       end
       redis.mget('NoStatusConfirmationJob_1', 'NoStatusConfirmationJob_2').should == %w(done)*2
       Sidekiq::Status.get(job_id).should == 'complete'

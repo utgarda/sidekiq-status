@@ -8,24 +8,33 @@ module Sidekiq::Status::Storage
   # @param [String] id job id
   # @param [Hash] status_updates updated values
   # @return [String] Redis operation status code
-  def store_for_id(id, status_updates)
+  def store_for_id(id, status_updates, expiration = nil)
     Sidekiq.redis do |conn|
-      answers = conn.multi do
-        conn.hmset id, 'update_time', Time.now.to_i, *(status_updates.to_a.flatten)
-        conn.expire id, Sidekiq::Status::DEFAULT_EXPIRY
+      conn.multi do
+        conn.hmset  id, 'update_time', Time.now.to_i, *(status_updates.to_a.flatten)
+        conn.expire id, (expiration || Sidekiq::Status::DEFAULT_EXPIRY)
         conn.publish "status_updates", id
-      end
-      answers[0]
+      end[0]
     end
+  end
+
+  # Stores job status and sets expiration time to it
+  # only in case of :failed or :stopped job
+  # @param [String] id job id
+  # @param [Symbol] job status
+  # @return [String] Redis operation status code
+  def store_status(id, status, expiration = nil)
+    #expiration = [:failed, :stopped].include?(status.to_sym) ? expiration : nil
+    store_for_id id, {status: status}, expiration
   end
 
   # Gets a single valued from job status hash
   # @param [String] id job id
   # @param [String] Symbol field fetched field name
   # @return [String] Redis operation status code
-  def read_field_for_id(uuid, field)
+  def read_field_for_id(id, field)
     Sidekiq.redis do |conn|
-      conn.hmget(uuid, field)[0]
+      conn.hmget(id, field)[0]
     end
   end
 

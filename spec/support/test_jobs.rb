@@ -17,7 +17,7 @@ end
 class ConfirmationJob < StubJob
   def perform(*args)
     Sidekiq.redis do |conn|
-      conn.publish "job_messages_#{id}", "while in #perform, status = #{conn.hget id, :status}"
+      conn.publish "job_messages_#{jid}", "while in #perform, status = #{conn.hget jid, :status}"
     end
   end
 end
@@ -28,7 +28,6 @@ class NoStatusConfirmationJob
     Sidekiq.redis do |conn|
       conn.set "NoStatusConfirmationJob_#{id}", "done"
     end
-
   end
 end
 
@@ -42,7 +41,7 @@ class RetriedJob < StubJob
   sidekiq_options 'retry' => 'true'
   def perform()
     Sidekiq.redis do |conn|
-      key = "RetriedJob_#{id}"
+      key = "RetriedJob_#{jid}"
       unless conn.exists key
         conn.set key, 'tried'
         raise StandardError
