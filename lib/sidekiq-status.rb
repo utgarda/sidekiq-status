@@ -25,7 +25,8 @@ module Sidekiq::Status
     end
 
     def status(job_id)
-      get(job_id, :status).to_sym
+      status = get(job_id, :status)
+      status.to_sym  unless status.nil?
     end
 
     STATUS.each do |name|
