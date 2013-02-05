@@ -14,6 +14,21 @@ class LongJob < StubJob
   end
 end
 
+class DataJob < StubJob
+  def perform
+    store({data: 'meow'})
+    retrieve(:data).should == 'meow'
+    sleep 0.1
+  end
+end
+
+class ProgressJob < StubJob
+  def perform
+    at 100, 500, 'howdy, partner?'
+    sleep 0.1
+  end
+end
+
 class ConfirmationJob < StubJob
   def perform(*args)
     Sidekiq.redis do |conn|
