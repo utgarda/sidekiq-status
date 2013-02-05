@@ -76,6 +76,7 @@ class MyJob
     store vino: 'veritas'
 
     # a way of retrieving said data
+    # remember that retrieved data is always is String|nil
     vino = retrieve :vino
   end
 end

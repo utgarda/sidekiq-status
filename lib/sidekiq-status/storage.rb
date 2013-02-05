@@ -24,7 +24,6 @@ module Sidekiq::Status::Storage
   # @param [Symbol] job status
   # @return [String] Redis operation status code
   def store_status(id, status, expiration = nil)
-    #expiration = [:failed, :stopped].include?(status.to_sym) ? expiration : nil
     store_for_id id, {status: status}, expiration
   end
 
