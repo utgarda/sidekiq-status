@@ -30,7 +30,7 @@ module Sidekiq::Status
 
     STATUS.each do |name|
       class_eval(<<-END, __FILE__, __LINE__)
-        def self.#{name}?(job_id)
+        def #{name}?(job_id)
           status(job_id) == :#{name}
         end
       END
@@ -46,7 +46,7 @@ module Sidekiq::Status
     end
 
     def pct_complete(job_id)
-      (num(job_id) / total(job_id)) * 100
+      (num(job_id).to_f / total(job_id)) * 100
     end
 
     def message(job_id)
