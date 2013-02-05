@@ -36,9 +36,9 @@ describe Sidekiq::Status do
       SecureRandom.should_receive(:hex).once.and_return(job_id)
 
       start_server do
-        capture_status_updates(2) {
+        capture_status_updates(3) {
           DataJob.perform_async.should == job_id
-        }.should == [job_id]*2
+        }.should == [job_id]*3
         Sidekiq::Status.get(job_id, :status).should == 'working'
       end
       Sidekiq::Status.get(job_id, :data).should == 'meow'

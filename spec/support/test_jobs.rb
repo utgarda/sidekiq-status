@@ -16,6 +16,7 @@ end
 
 class DataJob < StubJob
   def perform
+    sleep 0.1
     store({data: 'meow'})
     retrieve(:data).should == 'meow'
     sleep 0.1
