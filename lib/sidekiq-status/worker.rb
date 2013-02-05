@@ -12,8 +12,19 @@ module Sidekiq::Status::Worker
     store_for_id @jid, hash
   end
 
+  # Read value from job status hash
+  # @param String|Symbol hask key
+  def retrieve(name)
+    read_field_for_id @jid, name
+  end
+
+  # Sets current task progress
+  # (inspired by resque-status)
+  # @param Fixnum number of tasks done
+  # @param Fixnum total number of tasks
+  # @param String optional message
   def at(num, total, message=nil)
-    store_for_id @jid, {num: num, total: total, message: message}
+    store({num: num, total: total, message: message})
   end
 
 end
