@@ -96,6 +96,11 @@ Sidekiq::Status::pct_complete job_id #=> 5
 * Stopping jobs by id
 * Minimal web UI
 
+## Thanks
+Andrew Korzhuev  
+Jon Moses  
+Wayne Hoover
+
 ## License
 MIT License , see LICENSE for more details.
 © 2012 - 2013 Evgeniy Tsvigun
