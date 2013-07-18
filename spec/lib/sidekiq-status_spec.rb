@@ -5,6 +5,7 @@ describe Sidekiq::Status do
   let!(:redis) { Sidekiq.redis { |conn| conn } }
   let!(:job_id) { SecureRandom.hex(12) }
   let!(:job_id_1) { SecureRandom.hex(12) }
+  let!(:unused_id) { SecureRandom.hex(12) }
 
   # Clean Redis before each test
   # Seems like flushall has no effect on recently published messages,
@@ -74,6 +75,45 @@ describe Sidekiq::Status do
       end
       (hash = Sidekiq::Status.get_all(job_id)).should include 'status' => 'complete'
       hash.should include 'update_time'
+    end
+  end
+
+  describe ".cancel" do
+    it "cancels a job by id" do
+      SecureRandom.should_receive(:hex).twice.and_return(job_id, job_id_1)
+      start_server do
+        job = LongJob.perform_in(3600)
+        job.should == job_id
+        second_job = LongJob.perform_in(3600)
+        second_job.should == job_id_1
+
+        initial_schedule = redis.zrange "schedule", 0, -1, {withscores: true}
+        initial_schedule.size.should be 2
+        initial_schedule.select {|scheduled_job| JSON.parse(scheduled_job[0])["jid"] == job_id }.size.should be 1
+
+        Sidekiq::Status.cancel(job_id).should be_true
+        Sidekiq::Status.cancel(unused_id).should be_false # Unused, therefore unfound => false
+
+        remaining_schedule = redis.zrange "schedule", 0, -1, {withscores: true}
+        remaining_schedule.size.should == (initial_schedule.size - 1)
+        remaining_schedule.select {|scheduled_job| JSON.parse(scheduled_job[0])["jid"] == job_id }.size.should be 0
+      end
+    end
+
+    it "does not cancel a job with correct id but wrong time" do
+      SecureRandom.should_receive(:hex).once.and_return(job_id)
+      start_server do
+        scheduled_time = Time.now.to_i + 3600
+        returned_job_id = LongJob.perform_at(scheduled_time)
+        returned_job_id.should == job_id
+
+        initial_schedule = redis.zrange "schedule", 0, -1, {withscores: true}
+        initial_schedule.size.should == 1
+        Sidekiq::Status.cancel(returned_job_id, (scheduled_time + 1)).should be_false # wrong time, therefore unfound => false
+        (redis.zrange "schedule", 0, -1, {withscores: true}).size.should be 1
+        Sidekiq::Status.cancel(returned_job_id, (scheduled_time)).should be_true # same id, same time, deletes
+        (redis.zrange "schedule", 0, -1, {withscores: true}).size.should be_zero
+      end
     end
   end
 
