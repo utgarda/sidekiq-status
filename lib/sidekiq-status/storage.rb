@@ -1,5 +1,6 @@
 module Sidekiq::Status::Storage
   RESERVED_FIELDS=%w(status stop update_time).freeze
+  BATCH_LIMIT = 500
 
   protected
 
@@ -32,36 +33,19 @@ module Sidekiq::Status::Storage
   # @param [Num] job_unix_time, unix timestamp for the scheduled job
   def delete_and_unschedule(job_id, job_unix_time = nil)
     Sidekiq.redis do |conn|
-      scheduled_jobs = conn.zrange "schedule", 0, -1, {withscores: true}
-      matching_index = scan_scheduled_jobs_for_jid scheduled_jobs, job_id, job_unix_time
+      scan_options = {offset: 0, conn: conn, start: (job_unix_time || '-inf'), end: (job_unix_time || '+inf')}
 
-      job_found = matching_index > -1
-      if job_found
-        conn.zrem "schedule", scheduled_jobs[matching_index]
-        conn.del job_id
-      end
-      job_found
-    end
-  end
-
-  # Searches the schedule Array for the job_id
-  # @param [Array] scheduled_jobs, results of Redis schedule key
-  # @param [String] id job id
-  # @param [Num] job_unix_time, unix timestamp for the scheduled job
-  def scan_scheduled_jobs_for_jid(scheduled_jobs, job_id, job_unix_time = nil)
-    ## schedule is an array ordered by a (float) unix timestamp for the posting time.
-    ## Better would be to binary search on the time: # jobs_same_time = scheduled_jobs.bsearch {|x| x[1] == unix_time_scheduled }
-    ## Unfortunately Ruby 2.0's bsearch won't help here because it does not return a range of elements (would only return first-matching), nor does it return an index.
-    ## Instead we will scan through all elements until timestamp matches and check elements after:
-    scheduled_jobs.each_with_index do |schedule_listing, i|
-      checking_result = listing_matches_job(schedule_listing, job_id, job_unix_time)
-      if checking_result.nil?
-        return -1 # Is nil when we've exhaused potential candidates
-      elsif checking_result
-        return i
+      while not (jobs = schedule_batch(scan_options)).empty?
+        match = scan_scheduled_jobs_for_jid jobs, job_id
+        unless match.nil?
+          conn.zrem "schedule", match
+          conn.del job_id
+          return true # Done
+        end
+        scan_options[:offset] += BATCH_LIMIT
       end
     end
-    -1 # Not found
+    false
   end
 
   # Gets a single valued from job status hash
@@ -85,21 +69,25 @@ module Sidekiq::Status::Storage
 
   private
 
-  # Searches the schedule Array for the job_id
-  # @param [Array] schedule_listing, a particular entry from the Redis schedule Array
+  # Gets the batch of scheduled jobs based on input options
+  # Uses Redis zrangebyscore for log(n) search, if unix-time is provided
+  # @param [Hash] options, options hash containing (REQUIRED) keys:
+  #  -  conn: Redis connection
+  #  -  start: start score (i.e. -inf or a unix timestamp)
+  #  -  end: end score (i.e. +inf or a unix timestamp)
+  #  -  offset: current progress through (all) jobs (e.g.: 100 if you want jobs from 100 to BATCH_LIMIT)
+  def schedule_batch(options)
+    options[:conn].zrangebyscore "schedule", options[:start], options[:end], {limit: [options[:offset], BATCH_LIMIT]}
+  end
+
+  # Searches the jobs Array for the job_id
+  # @param [Array] scheduled_jobs, results of Redis schedule key
   # @param [String] id job id
-  # @param [Num] job_unix_time, unix timestamp for the scheduled job
-  def listing_matches_job(schedule_listing, job_id, job_unix_time = nil)
-    if(job_unix_time.nil? || schedule_listing[1] == job_unix_time)
-      # A Little skecthy, I know, but the structure of these internal JSON
-      # is predefined in such a way where this will not catch unintentional elements,
-      # and this is notably faster than performing JSON.parse() for every listing:
-      if schedule_listing[0].include?("\"jid\":\"#{job_id}")
-        return true
-      end
-    elsif(schedule_listing[1] > job_unix_time)
-      return nil #Not found. Can break (due to ordering)
-    end
-    false
+  def scan_scheduled_jobs_for_jid(scheduled_jobs, job_id)
+    # A Little skecthy, I know, but the structure of these internal JSON
+    # is predefined in such a way where this will not catch unintentional elements,
+    # and this is notably faster than performing JSON.parse() for every listing:
+    scheduled_jobs.each { |job_listing| (return job_listing) if job_listing.include?("\"jid\":\"#{job_id}") }
+    nil
   end
 end
