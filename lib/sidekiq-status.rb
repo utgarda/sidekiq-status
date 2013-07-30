@@ -29,6 +29,10 @@ module Sidekiq::Status
       status.to_sym  unless status.nil?
     end
 
+    def cancel(job_id, job_unix_time = nil)
+      delete_and_unschedule(job_id, job_unix_time)
+    end
+
     STATUS.each do |name|
       class_eval(<<-END, __FILE__, __LINE__)
         def #{name}?(job_id)
