@@ -91,15 +91,24 @@ Sidekiq::Status::total   job_id #=> 100
 Sidekiq::Status::message job_id #=> "Almost done"
 Sidekiq::Status::pct_complete job_id #=> 5
 ```
+### Unscheduling
+
+```ruby
+scheduled_job_id = MyJob.perform_in 3600
+Sidekiq::Status.cancel scheduled_job_id #=> true
+#doesn't cancel running jobs, this is more like unscheduling, therefore an alias:
+Sidekiq::Status.unschedule scheduled_job_id #=> true
+```
 
 ### Features coming
 * Stopping jobs by id
 * Minimal web UI
 
 ## Thanks
-Andrew Korzhuev  
-Jon Moses  
-Wayne Hoover
+* Andrew Korzhuev
+* Jon Moses
+* Wayne Hoover
+* Dylan Robinson
 
 ## License
 MIT License , see LICENSE for more details.
