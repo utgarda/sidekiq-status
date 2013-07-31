@@ -6,6 +6,8 @@ describe Sidekiq::Status do
   let!(:job_id) { SecureRandom.hex(12) }
   let!(:job_id_1) { SecureRandom.hex(12) }
   let!(:unused_id) { SecureRandom.hex(12) }
+  let!(:plain_sidekiq_job_id) { SecureRandom.hex(12) }
+  let!(:retried_job_id) { SecureRandom.hex(12) }
 
   # Clean Redis before each test
   # Seems like flushall has no effect on recently published messages,
@@ -91,7 +93,7 @@ describe Sidekiq::Status do
         initial_schedule.size.should be 2
         initial_schedule.select {|scheduled_job| JSON.parse(scheduled_job[0])["jid"] == job_id }.size.should be 1
 
-        Sidekiq::Status.cancel(job_id).should be_true
+        Sidekiq::Status.unschedule(job_id).should be_true
         Sidekiq::Status.cancel(unused_id).should be_false # Unused, therefore unfound => false
 
         remaining_schedule = redis.zrange "schedule", 0, -1, {withscores: true}
@@ -119,28 +121,28 @@ describe Sidekiq::Status do
 
   context "keeps normal Sidekiq functionality" do
     it "does jobs with and without included worker module" do
-      SecureRandom.should_receive(:hex).exactly(4).times.and_return(job_id, job_id, job_id_1, job_id_1)
+      SecureRandom.should_receive(:hex).exactly(4).times.and_return(plain_sidekiq_job_id, plain_sidekiq_job_id, job_id_1, job_id_1)
       start_server do
         capture_status_updates(12) {
-          StubJob.perform_async.should == job_id
+          StubJob.perform_async.should == plain_sidekiq_job_id
           NoStatusConfirmationJob.perform_async(1)
           StubJob.perform_async.should == job_id_1
           NoStatusConfirmationJob.perform_async(2)
-        }.should =~ [job_id, job_id_1] * 6
+        }.should =~ [plain_sidekiq_job_id, job_id_1] * 6
       end
       redis.mget('NoStatusConfirmationJob_1', 'NoStatusConfirmationJob_2').should == %w(done)*2
-      Sidekiq::Status.status(job_id).should == :complete
+      Sidekiq::Status.status(plain_sidekiq_job_id).should == :complete
       Sidekiq::Status.status(job_id_1).should == :complete
     end
 
     it "retries failed jobs" do
-      SecureRandom.should_receive(:hex).once.and_return(job_id)
+      SecureRandom.should_receive(:hex).once.and_return(retried_job_id)
       start_server do
         capture_status_updates(5) {
-          RetriedJob.perform_async().should == job_id
-        }.should == [job_id] * 5
+          RetriedJob.perform_async().should == retried_job_id
+        }.should == [retried_job_id] * 5
       end
-      Sidekiq::Status.status(job_id).should == :complete
+      Sidekiq::Status.status(retried_job_id).should == :complete
     end
   end
 

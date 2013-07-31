@@ -58,6 +58,7 @@ class RetriedJob < StubJob
   def perform()
     Sidekiq.redis do |conn|
       key = "RetriedJob_#{jid}"
+      sleep 1
       unless conn.exists key
         conn.set key, 'tried'
         raise StandardError

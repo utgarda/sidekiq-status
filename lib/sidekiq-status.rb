@@ -33,6 +33,8 @@ module Sidekiq::Status
       delete_and_unschedule(job_id, job_unix_time)
     end
 
+    alias_method :unschedule, :cancel
+
     STATUS.each do |name|
       class_eval(<<-END, __FILE__, __LINE__)
         def #{name}?(job_id)
