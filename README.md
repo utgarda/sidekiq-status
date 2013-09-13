@@ -100,6 +100,26 @@ Sidekiq::Status.cancel scheduled_job_id #=> true
 Sidekiq::Status.unschedule scheduled_job_id #=> true
 ```
 
+### Testing
+
+Drawing analogy from [sidekiq testing by inlining](https://github.com/mperham/sidekiq/wiki/Testing#testing-workers-inline)
+Sidekiq-status allows to bypass redis and return a stubbed `:complete` status.
+Since inlining your sidekiq worker will run it in-process, any exception it throws will make your test fail.
+It will also run synchronously, so by the time you get to query the job status, the job will have been completed
+successfully.
+In other words, you'll get the `:complete` status only if the job didn't fail.
+
+Inlining example:
+
+You can run Sidekiq workers inline in your tests by requiring the `sidekiq/testing/inline` file in your `{test,spec}_helper.rb`:
+
+`require 'sidekiq/testing/inline'`
+
+To use `sidekiq-status` inlining, require it too in your `{test,spec}_helper.rb`:
+
+`require 'sidekiq-status/testing/inline'`
+
+
 ### Features coming
 * Stopping jobs by id
 * Minimal web UI
