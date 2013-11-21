@@ -16,13 +16,7 @@ module Sidekiq::Status
       end
 
       app.get '/statuses' do
-        @count = (params[:count] || 25).to_i
-
-        @current_page = (params[:page] || 1).to_i
-        @current_page = 1 unless @current_page > 0
-
         queue = Sidekiq::Workers.new
-        @total_size = queue.size
         @statuses = []
 
         queue.each do |name, work, started_at|
