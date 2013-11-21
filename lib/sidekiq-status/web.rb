@@ -3,7 +3,7 @@
 module Sidekiq::Status
   # Hook into *Sidekiq::Web* Sinatra app which adds a new "/statuses" page
   module Web
-    # Location of SidekiqStatus::Web view templates
+    # Location of Sidekiq::Status::Web view templates
     VIEW_PATH = File.expand_path('../../../web/views', __FILE__)
 
     # @param [Sidekiq::Web] app
