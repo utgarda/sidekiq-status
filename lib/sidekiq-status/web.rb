@@ -22,7 +22,7 @@ module Sidekiq::Status
         queue.each do |name, work, started_at|
           job = Struct.new(:jid, :klass, :args).new(work["payload"]["jid"], work["payload"]["class"], work["payload"]["args"])
           status = Sidekiq::Status::get_all job.jid
-          next if status == {}
+          next if !status || status.count <= 2
           status["worker"] = job.klass
           status["args"] = job.args
           status["jid"] = job.jid
