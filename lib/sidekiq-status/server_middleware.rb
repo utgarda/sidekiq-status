@@ -24,7 +24,14 @@ module Sidekiq::Status
     def call(worker, msg, queue)
       # a way of overriding default expiration time,
       # so worker wouldn't lose its data
-      worker.expiration = @expiration  if worker.respond_to? :expiration=
+      # and it allows also to overwrite global expiration time on worker basis
+      if worker.respond_to? :expiration
+        if !worker.expiration && worker.respond_to?(:expiration=)
+          worker.expiration = @expiration
+        else
+          @expiration = worker.expiration
+        end
+      end
 
       store_status worker.jid, :working,  @expiration
       yield

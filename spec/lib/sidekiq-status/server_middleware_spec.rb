@@ -40,6 +40,27 @@ describe Sidekiq::Status::ServerMiddleware do
       StubJob.perform_async(:arg1 => 'val1').should == job_id
       (1..Sidekiq::Status::DEFAULT_EXPIRY).should cover redis.ttl(job_id)
     end
+  end
 
+  describe ":expiration parameter" do
+    let(:huge_expiration) { Sidekiq::Status::DEFAULT_EXPIRY * 100 }
+    before do
+      SecureRandom.should_receive(:hex).once.and_return(job_id)
+    end
+    it "overwrites default expiry value" do
+      start_server(:expiration => huge_expiration) do
+        StubJob.perform_async(:arg1 => 'val1')
+      end
+      ((Sidekiq::Status::DEFAULT_EXPIRY+1)..huge_expiration).should cover redis.ttl(job_id)
+    end
+
+    it "can be overwritten by worker expiration method" do
+      overwritten_expiration = huge_expiration * 100
+      StubJob.any_instance.stub(expiration: overwritten_expiration)
+      start_server(:expiration => huge_expiration) do
+        StubJob.perform_async(:arg1 => 'val1')
+      end
+      ((huge_expiration+1)..overwritten_expiration).should cover redis.ttl(job_id)
+    end
   end
 end
