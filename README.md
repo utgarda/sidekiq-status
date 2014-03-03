@@ -49,6 +49,21 @@ class MyJob
 end
 ```
 
+To overwrite expiration on worker basis and don't use global expiration for all workers write a line like this below at beginning of `perform` method:
+
+``` ruby
+class MyJob
+  include Sidekiq::Worker
+
+  def perform(*args)
+    self.expiration = 30.days
+    # your code goes here
+  end
+end
+```
+
+But keep in mind that such thing will store details of job as long as expiration is set, so it may charm your Redis storage/memory consumption. Because Redis stores all data in RAM.
+
 ### Retrieving status
 
 Query for job status any time later:
