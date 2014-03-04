@@ -49,14 +49,17 @@ class MyJob
 end
 ```
 
-To overwrite expiration on worker basis and don't use global expiration for all workers write a line like this below at beginning of `perform` method:
+To overwrite expiration on worker basis and don't use global expiration for all workers write a expiration method like this below:
 
 ``` ruby
 class MyJob
   include Sidekiq::Worker
 
+  def expiration
+    @expiration ||= 60*60*24*30 # 30 days
+  end
+
   def perform(*args)
-    self.expiration = 30.days
     # your code goes here
   end
 end
