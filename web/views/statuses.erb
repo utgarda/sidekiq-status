@@ -1,0 +1,36 @@
+<h3 class="wi">Recent job statuses</h3>
+
+
+<table class="table table-striped table-bordered">
+  <tr>
+    <th>Worker/jid</th>
+    <th>Status</th>
+    <th>Last Updated ↆ</th>
+    <th>Progress</th>
+    <th>Message</th>
+  </tr>
+  <% @statuses.each do |container| -%>
+    <tr>
+      <td>
+          <%= container.worker %>
+          <br />
+          <%= container.jid %>
+      </td>
+      <td><%= container.status %></td>
+      <td><%= Time.at(container.update_time.to_i) %></td>
+      <td>
+        <div class="progress progress-striped" style="margin-bottom: 0">
+          <div class="bar" style="width: <%= container.pct_complete %>%; text-shadow: 1px 1px 1px black; background-color: #AD003D;
+color: white;">
+            <%= container.pct_complete %>%
+          </div>
+        </div>
+      <td><%= container.message %></td>
+    </tr>
+  <% end -%>
+  <% if @statuses.empty? -%>
+    <tr>
+      <td colspan="6"></td>
+    </tr>
+  <% end -%>
+</table>

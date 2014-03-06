@@ -3,6 +3,7 @@ require 'sidekiq-status/storage'
 require 'sidekiq-status/worker'
 require 'sidekiq-status/client_middleware'
 require 'sidekiq-status/server_middleware'
+require 'sidekiq-status/web' if defined?(Sidekiq::Web)
 
 module Sidekiq::Status
   extend Storage
