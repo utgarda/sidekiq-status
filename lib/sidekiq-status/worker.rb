@@ -28,7 +28,7 @@ module Sidekiq::Status::Worker
   # @param String optional message
   # @return [String]
   def at(num, total, message=nil)
-    store({num: num, total: total, message: message})
+    store({at: num, total: total, message: message})
   end
 
 end
