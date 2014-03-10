@@ -25,7 +25,8 @@ end
 
 class ProgressJob < StubJob
   def perform
-    at 100, 500, 'howdy, partner?'
+    total 500
+    at 100, 'howdy, partner?'
     sleep 0.1
   end
 end

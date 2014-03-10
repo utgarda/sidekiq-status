@@ -92,7 +92,8 @@ class MyJob
     # your code goes here
 
     # the common idiom to track progress of your task
-    at 5, 100, "Almost done"
+    total 100 # by default
+    at 5, "Almost done"
 
     # a way to associate data with your job
     store vino: 'veritas'
