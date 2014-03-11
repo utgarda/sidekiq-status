@@ -44,7 +44,7 @@ def capture_status_updates(n, &block)
   confirmations_thread(n, "status_updates", &block).value
 end
 
-def start_server()
+def start_server(server_middleware_options={})
   pid = Process.fork do
     $stdout.reopen File::NULL, 'w'
     $stderr.reopen File::NULL, 'w'
@@ -53,7 +53,7 @@ def start_server()
     Sidekiq.configure_server do |config|
       config.redis = Sidekiq::RedisConnection.create
       config.server_middleware do |chain|
-        chain.add Sidekiq::Status::ServerMiddleware
+        chain.add Sidekiq::Status::ServerMiddleware, server_middleware_options
       end
     end
     Sidekiq::CLI.instance.run

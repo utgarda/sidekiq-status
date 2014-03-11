@@ -120,19 +120,13 @@ describe Sidekiq::Status do
   end
 
   context "keeps normal Sidekiq functionality" do
+    let(:expiration_param) { nil }
+
     it "does jobs with and without included worker module" do
-      SecureRandom.should_receive(:hex).exactly(4).times.and_return(plain_sidekiq_job_id, plain_sidekiq_job_id, job_id_1, job_id_1)
-      start_server do
-        capture_status_updates(12) {
-          StubJob.perform_async.should == plain_sidekiq_job_id
-          NoStatusConfirmationJob.perform_async(1)
-          StubJob.perform_async.should == job_id_1
-          NoStatusConfirmationJob.perform_async(2)
-        }.should =~ [plain_sidekiq_job_id, job_id_1] * 6
-      end
-      redis.mget('NoStatusConfirmationJob_1', 'NoStatusConfirmationJob_2').should == %w(done)*2
-      Sidekiq::Status.status(plain_sidekiq_job_id).should == :complete
-      Sidekiq::Status.status(job_id_1).should == :complete
+      seed_secure_random_with_job_ids
+      run_2_jobs!
+      expect_2_jobs_are_done_and_status_eq :complete
+      expect_2_jobs_ttl_covers 1..Sidekiq::Status::DEFAULT_EXPIRY
     end
 
     it "retries failed jobs" do
@@ -143,6 +137,52 @@ describe Sidekiq::Status do
         }.should == [retried_job_id] * 5
       end
       Sidekiq::Status.status(retried_job_id).should == :complete
+    end
+
+    context ":expiration param" do
+      before { seed_secure_random_with_job_ids }
+      let(:expiration_param) { Sidekiq::Status::DEFAULT_EXPIRY * 100 }
+
+      it "allow to overwrite :expiration parameter" do
+        run_2_jobs!
+        expect_2_jobs_are_done_and_status_eq :complete
+        expect_2_jobs_ttl_covers (Sidekiq::Status::DEFAULT_EXPIRY+1)..expiration_param
+      end
+
+      it "allow to overwrite :expiration parameter by .expiration method from worker" do
+        overwritten_expiration = expiration_param * 100
+        NoStatusConfirmationJob.any_instance.stub(:expiration => overwritten_expiration)
+        StubJob.any_instance.stub(:expiration => overwritten_expiration)
+        run_2_jobs!
+        expect_2_jobs_are_done_and_status_eq :complete
+        expect_2_jobs_ttl_covers (expiration_param+1)..overwritten_expiration
+      end
+    end
+
+    def seed_secure_random_with_job_ids
+      SecureRandom.should_receive(:hex).exactly(4).times.and_return(plain_sidekiq_job_id, plain_sidekiq_job_id, job_id_1, job_id_1)
+    end
+
+    def run_2_jobs!
+      start_server(:expiration => expiration_param) do
+        capture_status_updates(12) {
+          StubJob.perform_async.should == plain_sidekiq_job_id
+          NoStatusConfirmationJob.perform_async(1)
+          StubJob.perform_async.should == job_id_1
+          NoStatusConfirmationJob.perform_async(2)
+        }.should =~ [plain_sidekiq_job_id, job_id_1] * 6
+      end
+    end
+
+    def expect_2_jobs_ttl_covers(range)
+      range.should cover redis.ttl(plain_sidekiq_job_id)
+      range.should cover redis.ttl(job_id_1)
+    end
+
+    def expect_2_jobs_are_done_and_status_eq(status)
+      redis.mget('NoStatusConfirmationJob_1', 'NoStatusConfirmationJob_2').should == %w(done)*2
+      Sidekiq::Status.status(plain_sidekiq_job_id).should == status
+      Sidekiq::Status.status(job_id_1).should == status
     end
   end
 
