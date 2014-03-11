@@ -122,6 +122,18 @@ Sidekiq::Status.cancel scheduled_job_id #=> true
 Sidekiq::Status.unschedule scheduled_job_id #=> true
 ```
 
+### Sidekiq web integration
+
+Sidekiq::Status also provides an extension to Sidekiq web interface with a `/statuses` page.
+
+Setup Sidekiq web interface according to Sidekiq documentation and add the Sidekiq::Status::Web require:
+
+``` ruby
+require 'sidekiq/web'
+require 'sidekiq-status/web'
+```
+
+
 ### Testing
 
 Drawing analogy from [sidekiq testing by inlining](https://github.com/mperham/sidekiq/wiki/Testing#testing-workers-inline),
