@@ -1,5 +1,5 @@
 # Sidekiq::Status
-
+[![Gem Version](https://badge.fury.io/rb/sidekiq-status.png)](http://badge.fury.io/rb/sidekiq-status)
 [![Code Climate](https://codeclimate.com/github/utgarda/sidekiq-status.png)](https://codeclimate.com/github/utgarda/sidekiq-status)
 [![Build Status](https://secure.travis-ci.org/utgarda/sidekiq-status.png)](http://travis-ci.org/utgarda/sidekiq-status)
 
