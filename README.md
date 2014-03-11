@@ -143,9 +143,9 @@ To use `sidekiq-status` inlining, require it too in your `{test,spec}_helper.rb`
 
 ### Features coming
 * Stopping jobs by id
-* Minimal web UI
 
 ## Thanks
+* Clay Allsopp
 * Andrew Korzhuev
 * Jon Moses
 * Wayne Hoover
@@ -153,4 +153,4 @@ To use `sidekiq-status` inlining, require it too in your `{test,spec}_helper.rb`
 
 ## License
 MIT License , see LICENSE for more details.
-© 2012 - 2013 Evgeniy Tsvigun
+© 2012 - 2014 Evgeniy Tsvigun
