@@ -9,8 +9,8 @@ module Sidekiq::Status::Storage
   # @param [String] id job id
   # @param [Hash] status_updates updated values
   # @return [String] Redis operation status code
-  def store_for_id(id, status_updates, expiration = nil)
-    Sidekiq.redis do |conn|
+  def store_for_id(id, status_updates, expiration = nil, redis_pool=nil)
+    redis_connection(redis_pool) do |conn|
       conn.multi do
         conn.hmset  id, 'update_time', Time.now.to_i, *(status_updates.to_a.flatten(1))
         conn.expire id, (expiration || Sidekiq::Status::DEFAULT_EXPIRY)
@@ -24,8 +24,8 @@ module Sidekiq::Status::Storage
   # @param [String] id job id
   # @param [Symbol] job status
   # @return [String] Redis operation status code
-  def store_status(id, status, expiration = nil)
-    store_for_id id, {status: status}, expiration
+  def store_status(id, status, expiration = nil, redis_pool=nil)
+    store_for_id id, {status: status}, expiration, redis_pool
   end
 
   # Unschedules the job and deletes the Status
@@ -89,5 +89,18 @@ module Sidekiq::Status::Storage
     # and this is notably faster than performing JSON.parse() for every listing:
     scheduled_jobs.each { |job_listing| (return job_listing) if job_listing.include?("\"jid\":\"#{job_id}") }
     nil
+  end
+
+  # Yields redis connection. Uses redis pool if available.
+  def redis_connection(pool)
+    if pool
+      pool.with do |conn|
+        yield conn
+      end
+    else
+      Sidekiq.redis do |conn|
+        yield conn
+      end
+    end
   end
 end
