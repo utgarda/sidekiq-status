@@ -7,7 +7,7 @@ module Sidekiq::Status
     # @param [Array] msg job arguments
     # @param [String] queue the queue's name
     def call(worker_class, msg, queue, redis_pool=nil)
-      store_status msg['jid'], :queued
+      store_status msg['jid'], :queued, nil, redis_pool
       yield
     end
   end
