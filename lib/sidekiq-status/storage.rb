@@ -8,6 +8,7 @@ module Sidekiq::Status::Storage
   # sets last update time
   # @param [String] id job id
   # @param [Hash] status_updates updated values
+  # @param [ConnectionPool] redis_pool redis connection pool
   # @return [String] Redis operation status code
   def store_for_id(id, status_updates, expiration = nil, redis_pool=nil)
     redis_connection(redis_pool) do |conn|
@@ -23,6 +24,7 @@ module Sidekiq::Status::Storage
   # only in case of :failed or :stopped job
   # @param [String] id job id
   # @param [Symbol] job status
+  # @param [ConnectionPool] redis_pool redis connection pool
   # @return [String] Redis operation status code
   def store_status(id, status, expiration = nil, redis_pool=nil)
     store_for_id id, {status: status}, expiration, redis_pool
@@ -92,6 +94,7 @@ module Sidekiq::Status::Storage
   end
 
   # Yields redis connection. Uses redis pool if available.
+  # @param [ConnectionPool] redis_pool redis connection pool
   def redis_connection(pool)
     if pool
       pool.with do |conn|
