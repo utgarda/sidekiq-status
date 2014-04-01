@@ -26,7 +26,7 @@ module Sidekiq::Status
           status["worker"] = job.klass
           status["args"] = job.args
           status["jid"] = job.jid
-          status["pct_complete"] = ((status["num"].to_f / status["total"].to_f) * 100).to_i
+          status["pct_complete"] = ((status["at"].to_f / status["total"].to_f) * 100).to_i
           @statuses << OpenStruct.new(status)
         end
 

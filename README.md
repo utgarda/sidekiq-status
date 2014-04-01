@@ -92,7 +92,8 @@ class MyJob
     # your code goes here
 
     # the common idiom to track progress of your task
-    at 5, 100, "Almost done"
+    total 100 # by default
+    at 5, "Almost done"
 
     # a way to associate data with your job
     store vino: 'veritas'
@@ -107,7 +108,7 @@ job_id = MyJob.perform_async(*args)
 data = Sidekiq::Status::get_all job_id
 data # => {status: 'complete', update_time: 1360006573, vino: 'veritas'}
 Sidekiq::Status::get     job_id, :vino #=> 'veritas'
-Sidekiq::Status::num     job_id #=> 5
+Sidekiq::Status::at      job_id #=> 5
 Sidekiq::Status::total   job_id #=> 100
 Sidekiq::Status::message job_id #=> "Almost done"
 Sidekiq::Status::pct_complete job_id #=> 5
@@ -120,6 +121,18 @@ Sidekiq::Status.cancel scheduled_job_id #=> true
 #doesn't cancel running jobs, this is more like unscheduling, therefore an alias:
 Sidekiq::Status.unschedule scheduled_job_id #=> true
 ```
+
+### Sidekiq web integration
+
+Sidekiq::Status also provides an extension to Sidekiq web interface with a `/statuses` page.
+
+Setup Sidekiq web interface according to Sidekiq documentation and add the Sidekiq::Status::Web require:
+
+``` ruby
+require 'sidekiq/web'
+require 'sidekiq-status/web'
+```
+
 
 ### Testing
 

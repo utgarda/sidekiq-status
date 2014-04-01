@@ -45,8 +45,8 @@ module Sidekiq::Status
     end
 
     # Methods for retrieving job completion
-    def num(job_id)
-      get(job_id, :num).to_i
+    def at(job_id)
+      get(job_id, :at).to_i
     end
 
     def total(job_id)
@@ -54,7 +54,7 @@ module Sidekiq::Status
     end
 
     def pct_complete(job_id)
-      (num(job_id).to_f / total(job_id)) * 100
+      (at(job_id).to_f / total(job_id)) * 100
     end
 
     def message(job_id)

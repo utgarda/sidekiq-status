@@ -48,7 +48,7 @@ describe Sidekiq::Status do
     end
   end
 
-  describe ".num, .total, .pct_complete, .message" do
+  describe ".at, .total, .pct_complete, .message" do
     it "should return job progress with correct type to it" do
       SecureRandom.should_receive(:hex).once.and_return(job_id)
 
@@ -57,7 +57,7 @@ describe Sidekiq::Status do
           ProgressJob.perform_async.should == job_id
         }.should == [job_id]*3
       end
-      Sidekiq::Status.num(job_id).should == 100
+      Sidekiq::Status.at(job_id).should == 100
       Sidekiq::Status.total(job_id).should == 500
       Sidekiq::Status.pct_complete(job_id).should == 20
       Sidekiq::Status.message(job_id).should == 'howdy, partner?'

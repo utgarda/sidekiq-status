@@ -24,11 +24,18 @@ module Sidekiq::Status::Worker
   # Sets current task progress
   # (inspired by resque-status)
   # @param Fixnum number of tasks done
-  # @param Fixnum total number of tasks
   # @param String optional message
   # @return [String]
-  def at(num, total, message=nil)
-    store({num: num, total: total, message: message})
+  def at(num, message = nil)
+    total(100) if retrieve(:total).nil?
+    store(at: num, message: message)
+  end
+
+  # Sets total number of tasks
+  # @param Fixnum total number of tasks
+  # @return [String]
+  def total(num)
+    store(total: num)
   end
 
 end
