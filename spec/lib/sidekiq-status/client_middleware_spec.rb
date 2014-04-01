@@ -24,7 +24,7 @@ describe Sidekiq::Status::ClientMiddleware do
 
     context "when redis_pool passed" do
       it "uses redis_pool" do
-        redis_pool = OpenStruct.new
+        redis_pool = double(:redis_pool)
         redis_pool.should_receive(:with)
         Sidekiq.should_not_receive(:redis)
         Sidekiq::Status::ClientMiddleware.new.call(StubJob, {'jid' => SecureRandom.hex}, :queued, redis_pool) do end
