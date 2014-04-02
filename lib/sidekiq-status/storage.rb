@@ -96,10 +96,10 @@ module Sidekiq::Status::Storage
   end
 
   # Yields redis connection. Uses redis pool if available.
-  # @param [ConnectionPool] redis_pool redis connection pool
-  def redis_connection(pool)
-    if pool
-      pool.with do |conn|
+  # @param [ConnectionPool] redis_pool optional redis connection pool
+  def redis_connection(redis_pool=nil)
+    if redis_pool
+      redis_pool.with do |conn|
         yield conn
       end
     else
