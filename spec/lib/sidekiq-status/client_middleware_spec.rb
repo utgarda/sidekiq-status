@@ -22,5 +22,20 @@ describe Sidekiq::Status::ClientMiddleware do
       (1..Sidekiq::Status::DEFAULT_EXPIRY).should cover redis.ttl(job_id)
     end
 
+    context "when redis_pool passed" do
+      it "uses redis_pool" do
+        redis_pool = double(:redis_pool)
+        redis_pool.should_receive(:with)
+        Sidekiq.should_not_receive(:redis)
+        Sidekiq::Status::ClientMiddleware.new.call(StubJob, {'jid' => SecureRandom.hex}, :queued, redis_pool) do end
+      end
+    end
+
+    context "when redis_pool is not passed" do
+      it "uses Sidekiq.redis" do
+        Sidekiq.should_receive(:redis)
+        Sidekiq::Status::ClientMiddleware.new.call(StubJob, {'jid' => SecureRandom.hex}, :queued) do end
+      end
+    end
   end
 end

@@ -9,7 +9,7 @@
     <th>Progress</th>
     <th>Message</th>
   </tr>
-  <% @statuses.each do |container| -%>
+  <% @statuses.each do |container| %>
     <tr>
       <td>
           <%= container.worker %>
@@ -27,10 +27,10 @@ color: white;">
         </div>
       <td><%= container.message %></td>
     </tr>
-  <% end -%>
-  <% if @statuses.empty? -%>
+  <% end %>
+  <% if @statuses.empty? %>
     <tr>
       <td colspan="6"></td>
     </tr>
-  <% end -%>
+  <% end %>
 </table>

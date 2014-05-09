@@ -6,8 +6,9 @@ module Sidekiq::Status
     # @param [Class] worker_class if includes Sidekiq::Status::Worker, the job gets processed with the plugin
     # @param [Array] msg job arguments
     # @param [String] queue the queue's name
-    def call(worker_class, msg, queue)
-      store_status msg['jid'], :queued
+    # @param [ConnectionPool] redis_pool optional redis connection pool
+    def call(worker_class, msg, queue, redis_pool=nil)
+      store_status msg['jid'], :queued, nil, redis_pool
       yield
     end
   end
