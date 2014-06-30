@@ -37,11 +37,9 @@ module Sidekiq::Status
     alias_method :unschedule, :cancel
 
     STATUS.each do |name|
-      class_eval(<<-END, __FILE__, __LINE__)
-        def #{name}?(job_id)
-          status(job_id) == :#{name}
-        end
-      END
+      define_method("#{name}?") do |job_id|
+        status(job_id) == name
+      end
     end
 
     # Methods for retrieving job completion
