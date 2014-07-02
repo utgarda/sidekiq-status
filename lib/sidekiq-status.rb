@@ -51,7 +51,7 @@ module Sidekiq::Status
       get(job_id, :total).to_i
     end
 
-    def pct_complete(job_id)
+    def percent_complete(job_id)
       (at(job_id).to_f / total(job_id)) * 100
     end
 

@@ -20,9 +20,9 @@
       <td><%= Time.at(container.update_time.to_i) %></td>
       <td>
         <div class="progress progress-striped" style="margin-bottom: 0">
-          <div class="bar" style="width: <%= container.pct_complete %>%; text-shadow: 1px 1px 1px black; background-color: #AD003D;
+          <div class="bar" style="width: <%= container.percent_complete %>%; text-shadow: 1px 1px 1px black; background-color: #AD003D;
 color: white;">
-            <%= container.pct_complete %>%
+            <%= container.percent_complete %>%
           </div>
         </div>
       <td><%= container.message %></td>

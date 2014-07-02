@@ -48,7 +48,7 @@ describe Sidekiq::Status do
     end
   end
 
-  describe ".at, .total, .pct_complete, .message" do
+  describe ".at, .total, .percent_complete, .message" do
     it "should return job progress with correct type to it" do
       allow(SecureRandom).to receive(:hex).once.and_return(job_id)
 
@@ -59,8 +59,8 @@ describe Sidekiq::Status do
       end
       expect(Sidekiq::Status.at(job_id)).to be(100)
       expect(Sidekiq::Status.total(job_id)).to be(500)
-      # It returns a float therefor we need eq()
-      expect(Sidekiq::Status.pct_complete(job_id)).to eq(20)
+      # It returns a float therefore we need eq()
+      expect(Sidekiq::Status.percent_complete(job_id)).to eq(20)
       expect(Sidekiq::Status.message(job_id)).to eq('howdy, partner?')
     end
   end
