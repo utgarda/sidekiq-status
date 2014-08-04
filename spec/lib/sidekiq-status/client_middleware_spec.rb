@@ -10,30 +10,30 @@ describe Sidekiq::Status::ClientMiddleware do
 
   describe "#call" do
     it "sets queued status" do
-      SecureRandom.should_receive(:hex).once.and_return(job_id)
-      StubJob.perform_async(:arg1 => 'val1').should == job_id
-      redis.hget(job_id, :status).should == 'queued'
-      Sidekiq::Status::queued?(job_id).should be_true
+      allow(SecureRandom).to receive(:hex).once.and_return(job_id)
+      expect(StubJob.perform_async(:arg1 => 'val1')).to eq(job_id)
+      expect(redis.hget(job_id, :status)).to eq('queued')
+      expect(Sidekiq::Status::queued?(job_id)).to be_truthy
     end
 
     it "sets status hash ttl" do
-      SecureRandom.should_receive(:hex).once.and_return(job_id)
-      StubJob.perform_async(:arg1 => 'val1').should == job_id
-      (1..Sidekiq::Status::DEFAULT_EXPIRY).should cover redis.ttl(job_id)
+      allow(SecureRandom).to receive(:hex).once.and_return(job_id)
+      expect(StubJob.perform_async(:arg1 => 'val1')).to eq(job_id)
+      expect(1..Sidekiq::Status::DEFAULT_EXPIRY).to cover redis.ttl(job_id)
     end
 
     context "when redis_pool passed" do
       it "uses redis_pool" do
         redis_pool = double(:redis_pool)
-        redis_pool.should_receive(:with)
-        Sidekiq.should_not_receive(:redis)
+        allow(redis_pool).to receive(:with)
+        expect(Sidekiq).to_not receive(:redis)
         Sidekiq::Status::ClientMiddleware.new.call(StubJob, {'jid' => SecureRandom.hex}, :queued, redis_pool) do end
       end
     end
 
     context "when redis_pool is not passed" do
       it "uses Sidekiq.redis" do
-        Sidekiq.should_receive(:redis)
+        allow(Sidekiq).to receive(:redis)
         Sidekiq::Status::ClientMiddleware.new.call(StubJob, {'jid' => SecureRandom.hex}, :queued) do end
       end
     end

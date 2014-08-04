@@ -13,54 +13,55 @@ describe Sidekiq::Status::ServerMiddleware do
   describe "#call" do
     it "sets working/complete status" do
       thread = confirmations_thread 4, "status_updates", "job_messages_#{job_id}"
-      SecureRandom.should_receive(:hex).once.and_return(job_id)
+      allow(SecureRandom).to receive(:hex).once.and_return(job_id)
       start_server do
-        ConfirmationJob.perform_async(:arg1 => 'val1').should == job_id
-        thread.value.should == [job_id, job_id,
+        expect(ConfirmationJob.perform_async(:arg1 => 'val1')).to eq(job_id)
+        expect(thread.value).to eq([job_id, job_id,
                                 "while in #perform, status = working",
-                                job_id]
+                                job_id])
       end
-      redis.hget(job_id, :status).should == 'complete'
-      Sidekiq::Status::complete?(job_id).should be_true
+      expect(redis.hget(job_id, :status)).to eq('complete')
+      expect(Sidekiq::Status::complete?(job_id)).to be_truthy
     end
 
     it "sets failed status" do
-      SecureRandom.should_receive(:hex).once.and_return(job_id)
+      allow(SecureRandom).to receive(:hex).once.and_return(job_id)
       start_server do
-        capture_status_updates(3) {
-          FailingJob.perform_async.should == job_id
-        }.should == [job_id]*3
+        expect(capture_status_updates(3) {
+          expect(FailingJob.perform_async).to eq(job_id)
+        }).to eq([job_id]*3)
       end
-      redis.hget(job_id, :status).should == 'failed'
-      Sidekiq::Status::failed?(job_id).should be_true
+      expect(redis.hget(job_id, :status)).to eq('failed')
+      expect(Sidekiq::Status::failed?(job_id)).to be_truthy
     end
 
     it "sets status hash ttl" do
-      SecureRandom.should_receive(:hex).once.and_return(job_id)
-      StubJob.perform_async(:arg1 => 'val1').should == job_id
-      (1..Sidekiq::Status::DEFAULT_EXPIRY).should cover redis.ttl(job_id)
+      allow(SecureRandom).to receive(:hex).once.and_return(job_id)
+      expect(StubJob.perform_async(:arg1 => 'val1')).to eq(job_id)
+      expect(1..Sidekiq::Status::DEFAULT_EXPIRY).to cover redis.ttl(job_id)
     end
   end
 
   describe ":expiration parameter" do
     let(:huge_expiration) { Sidekiq::Status::DEFAULT_EXPIRY * 100 }
     before do
-      SecureRandom.should_receive(:hex).once.and_return(job_id)
+      allow(SecureRandom).to receive(:hex).once.and_return(job_id)
     end
+
     it "overwrites default expiry value" do
       start_server(:expiration => huge_expiration) do
         StubJob.perform_async(:arg1 => 'val1')
       end
-      ((Sidekiq::Status::DEFAULT_EXPIRY+1)..huge_expiration).should cover redis.ttl(job_id)
+      expect((Sidekiq::Status::DEFAULT_EXPIRY+1)..huge_expiration).to cover redis.ttl(job_id)
     end
 
     it "can be overwritten by worker expiration method" do
       overwritten_expiration = huge_expiration * 100
-      StubJob.any_instance.stub(expiration: overwritten_expiration)
+      allow_any_instance_of(StubJob).to receive(:expiration).and_return(overwritten_expiration)
       start_server(:expiration => huge_expiration) do
         StubJob.perform_async(:arg1 => 'val1')
       end
-      ((huge_expiration+1)..overwritten_expiration).should cover redis.ttl(job_id)
+      expect((huge_expiration+1)..overwritten_expiration).to cover redis.ttl(job_id)
     end
   end
 end

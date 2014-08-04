@@ -16,105 +16,109 @@ describe Sidekiq::Status do
 
   describe ".status, .working?, .complete?" do
     it "gets job status by id as symbol" do
-      SecureRandom.should_receive(:hex).once.and_return(job_id)
+      allow(SecureRandom).to receive(:hex).once.and_return(job_id)
 
       start_server do
-        capture_status_updates(2) {
-          LongJob.perform_async(1).should == job_id
-        }.should == [job_id]*2
-        Sidekiq::Status.status(job_id).should == :working
-        Sidekiq::Status.working?(job_id).should be_true
-        Sidekiq::Status::queued?(job_id).should be_false
-        Sidekiq::Status::failed?(job_id ).should be_false
-        Sidekiq::Status::complete?(job_id).should be_false
-        Sidekiq::Status::stopped?(job_id).should be_false
+        expect(capture_status_updates(2) {
+          expect(LongJob.perform_async(1)).to eq(job_id)
+        }).to eq([job_id]*2)
+        expect(Sidekiq::Status.status(job_id)).to eq(:working)
+        expect(Sidekiq::Status.working?(job_id)).to be_truthy
+        expect(Sidekiq::Status::queued?(job_id)).to be_falsey
+        expect(Sidekiq::Status::failed?(job_id)).to be_falsey
+        expect(Sidekiq::Status::complete?(job_id)).to be_falsey
+        expect(Sidekiq::Status::stopped?(job_id)).to be_falsey
       end
-      Sidekiq::Status.status(job_id).should == :complete
-      Sidekiq::Status.complete?(job_id).should be_true
+      expect(Sidekiq::Status.status(job_id)).to eq(:complete)
+      expect(Sidekiq::Status.complete?(job_id)).to be_truthy
     end
   end
 
   describe ".get" do
     it "gets a single value from data hash as string" do
-      SecureRandom.should_receive(:hex).once.and_return(job_id)
+      allow(SecureRandom).to receive(:hex).once.and_return(job_id)
 
       start_server do
-        capture_status_updates(3) {
-          DataJob.perform_async.should == job_id
-        }.should == [job_id]*3
-        Sidekiq::Status.get(job_id, :status).should == 'working'
+        expect(capture_status_updates(3) {
+          expect(DataJob.perform_async).to eq(job_id)
+        }).to eq([job_id]*3)
+        expect(Sidekiq::Status.get(job_id, :status)).to eq('working')
       end
-      Sidekiq::Status.get(job_id, :data).should == 'meow'
+      expect(Sidekiq::Status.get(job_id, :data)).to eq('meow')
     end
   end
 
   describe ".at, .total, .pct_complete, .message" do
     it "should return job progress with correct type to it" do
-      SecureRandom.should_receive(:hex).once.and_return(job_id)
+      allow(SecureRandom).to receive(:hex).once.and_return(job_id)
 
       start_server do
-        capture_status_updates(3) {
-          ProgressJob.perform_async.should == job_id
-        }.should == [job_id]*3
+        expect(capture_status_updates(3) {
+          expect(ProgressJob.perform_async).to eq(job_id)
+        }).to eq([job_id]*3)
       end
-      Sidekiq::Status.at(job_id).should == 100
-      Sidekiq::Status.total(job_id).should == 500
-      Sidekiq::Status.pct_complete(job_id).should == 20
-      Sidekiq::Status.message(job_id).should == 'howdy, partner?'
+      expect(Sidekiq::Status.at(job_id)).to be(100)
+      expect(Sidekiq::Status.total(job_id)).to be(500)
+      # It returns a float therefor we need eq()
+      expect(Sidekiq::Status.pct_complete(job_id)).to eq(20)
+      expect(Sidekiq::Status.message(job_id)).to eq('howdy, partner?')
     end
   end
 
   describe ".get_all" do
     it "gets the job hash by id" do
-      SecureRandom.should_receive(:hex).once.and_return(job_id)
+      allow(SecureRandom).to receive(:hex).once.and_return(job_id)
 
       start_server do
-        capture_status_updates(2) {
-          LongJob.perform_async(1).should == job_id
-        }.should == [job_id]*2
-        (hash = Sidekiq::Status.get_all(job_id)).should include 'status' => 'working'
-        hash.should include 'update_time'
+        expect(capture_status_updates(2) {
+          expect(LongJob.perform_async(1)).to eq(job_id)
+        }).to eq([job_id]*2)
+        expect(hash = Sidekiq::Status.get_all(job_id)).to include 'status' => 'working'
+        expect(hash).to include 'update_time'
       end
-      (hash = Sidekiq::Status.get_all(job_id)).should include 'status' => 'complete'
-      hash.should include 'update_time'
+      expect(hash = Sidekiq::Status.get_all(job_id)).to include 'status' => 'complete'
+      expect(hash).to include 'update_time'
     end
   end
 
   describe ".cancel" do
     it "cancels a job by id" do
-      SecureRandom.should_receive(:hex).twice.and_return(job_id, job_id_1)
+      allow(SecureRandom).to receive(:hex).twice.and_return(job_id, job_id_1)
       start_server do
         job = LongJob.perform_in(3600)
-        job.should == job_id
+        expect(job).to eq(job_id)
         second_job = LongJob.perform_in(3600)
-        second_job.should == job_id_1
+        expect(second_job).to eq(job_id_1)
 
         initial_schedule = redis.zrange "schedule", 0, -1, {withscores: true}
-        initial_schedule.size.should be 2
-        initial_schedule.select {|scheduled_job| JSON.parse(scheduled_job[0])["jid"] == job_id }.size.should be 1
+        expect(initial_schedule.size).to  be(2)
+        expect(initial_schedule.select {|scheduled_job| JSON.parse(scheduled_job[0])["jid"] == job_id }.size).to be(1)
 
-        Sidekiq::Status.unschedule(job_id).should be_true
-        Sidekiq::Status.cancel(unused_id).should be_false # Unused, therefore unfound => false
+        expect(Sidekiq::Status.unschedule(job_id)).to be_truthy
+        # Unused, therefore unfound => false
+        expect(Sidekiq::Status.cancel(unused_id)).to be_falsey
 
         remaining_schedule = redis.zrange "schedule", 0, -1, {withscores: true}
-        remaining_schedule.size.should == (initial_schedule.size - 1)
-        remaining_schedule.select {|scheduled_job| JSON.parse(scheduled_job[0])["jid"] == job_id }.size.should be 0
+        expect(remaining_schedule.size).to be(initial_schedule.size - 1)
+        expect(remaining_schedule.select {|scheduled_job| JSON.parse(scheduled_job[0])["jid"] == job_id }.size).to be(0)
       end
     end
 
     it "does not cancel a job with correct id but wrong time" do
-      SecureRandom.should_receive(:hex).once.and_return(job_id)
+      allow(SecureRandom).to receive(:hex).once.and_return(job_id)
       start_server do
         scheduled_time = Time.now.to_i + 3600
         returned_job_id = LongJob.perform_at(scheduled_time)
-        returned_job_id.should == job_id
+        expect(returned_job_id).to eq(job_id)
 
         initial_schedule = redis.zrange "schedule", 0, -1, {withscores: true}
-        initial_schedule.size.should == 1
-        Sidekiq::Status.cancel(returned_job_id, (scheduled_time + 1)).should be_false # wrong time, therefore unfound => false
-        (redis.zrange "schedule", 0, -1, {withscores: true}).size.should be 1
-        Sidekiq::Status.cancel(returned_job_id, (scheduled_time)).should be_true # same id, same time, deletes
-        (redis.zrange "schedule", 0, -1, {withscores: true}).size.should be_zero
+        expect(initial_schedule.size).to be(1)
+        # wrong time, therefore unfound => false
+        expect(Sidekiq::Status.cancel(returned_job_id, (scheduled_time + 1))).to be_falsey
+        expect((redis.zrange "schedule", 0, -1, {withscores: true}).size).to be(1)
+        # same id, same time, deletes
+        expect(Sidekiq::Status.cancel(returned_job_id, (scheduled_time))).to be_truthy
+        expect(redis.zrange "schedule", 0, -1, {withscores: true}).to be_empty
       end
     end
   end
@@ -130,13 +134,13 @@ describe Sidekiq::Status do
     end
 
     it "retries failed jobs" do
-      SecureRandom.should_receive(:hex).once.and_return(retried_job_id)
+      allow(SecureRandom).to receive(:hex).once.and_return(retried_job_id)
       start_server do
-        capture_status_updates(5) {
-          RetriedJob.perform_async().should == retried_job_id
-        }.should == [retried_job_id] * 5
+        expect(capture_status_updates(5) {
+          expect(RetriedJob.perform_async()).to eq(retried_job_id)
+        }).to eq([retried_job_id] * 5)
       end
-      Sidekiq::Status.status(retried_job_id).should == :complete
+      expect(Sidekiq::Status.status(retried_job_id)).to eq(:complete)
     end
 
     context ":expiration param" do
@@ -151,8 +155,10 @@ describe Sidekiq::Status do
 
       it "allow to overwrite :expiration parameter by .expiration method from worker" do
         overwritten_expiration = expiration_param * 100
-        NoStatusConfirmationJob.any_instance.stub(:expiration => overwritten_expiration)
-        StubJob.any_instance.stub(:expiration => overwritten_expiration)
+        allow_any_instance_of(NoStatusConfirmationJob).to receive(:expiration).
+          and_return(overwritten_expiration)
+        allow_any_instance_of(StubJob).to receive(:expiration).
+          and_return(overwritten_expiration)
         run_2_jobs!
         expect_2_jobs_are_done_and_status_eq :complete
         expect_2_jobs_ttl_covers (expiration_param+1)..overwritten_expiration
@@ -160,29 +166,30 @@ describe Sidekiq::Status do
     end
 
     def seed_secure_random_with_job_ids
-      SecureRandom.should_receive(:hex).exactly(4).times.and_return(plain_sidekiq_job_id, plain_sidekiq_job_id, job_id_1, job_id_1)
+      allow(SecureRandom).to receive(:hex).exactly(4).times.
+        and_return(plain_sidekiq_job_id, plain_sidekiq_job_id, job_id_1, job_id_1)
     end
 
     def run_2_jobs!
       start_server(:expiration => expiration_param) do
-        capture_status_updates(12) {
-          StubJob.perform_async.should == plain_sidekiq_job_id
+        expect(capture_status_updates(12) {
+          expect(StubJob.perform_async).to eq(plain_sidekiq_job_id)
           NoStatusConfirmationJob.perform_async(1)
-          StubJob.perform_async.should == job_id_1
+          expect(StubJob.perform_async).to eq(job_id_1)
           NoStatusConfirmationJob.perform_async(2)
-        }.should =~ [plain_sidekiq_job_id, job_id_1] * 6
+        }).to match_array([plain_sidekiq_job_id, job_id_1] * 6)
       end
     end
 
     def expect_2_jobs_ttl_covers(range)
-      range.should cover redis.ttl(plain_sidekiq_job_id)
-      range.should cover redis.ttl(job_id_1)
+      expect(range).to cover redis.ttl(plain_sidekiq_job_id)
+      expect(range).to cover redis.ttl(job_id_1)
     end
 
     def expect_2_jobs_are_done_and_status_eq(status)
-      redis.mget('NoStatusConfirmationJob_1', 'NoStatusConfirmationJob_2').should == %w(done)*2
-      Sidekiq::Status.status(plain_sidekiq_job_id).should == status
-      Sidekiq::Status.status(job_id_1).should == status
+      expect(redis.mget('NoStatusConfirmationJob_1', 'NoStatusConfirmationJob_2')).to eq(%w(done)*2)
+      expect(Sidekiq::Status.status(plain_sidekiq_job_id)).to eq(status)
+      expect(Sidekiq::Status.status(job_id_1)).to eq(status)
     end
   end
 
