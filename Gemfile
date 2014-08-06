@@ -2,6 +2,7 @@
 source 'https://rubygems.org'
 
 gemspec
+gem 'appraisal'
 
 group :test do
   gem 'simplecov', '>= 0.9.0', :require => false

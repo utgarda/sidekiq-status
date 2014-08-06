@@ -10,3 +10,8 @@ rvm:
 matrix:
   allow_failures:
     - rvm: ruby-head
+gemfile:
+  - gemfiles/sidekiq_2.17.gemfile
+  - gemfiles/sidekiq_3.0.gemfile
+  - gemfiles/sidekiq_3.1.gemfile
+  - gemfiles/sidekiq_3.2.gemfile
