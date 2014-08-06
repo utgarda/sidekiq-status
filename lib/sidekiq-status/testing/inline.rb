@@ -1,10 +1,9 @@
 module Sidekiq
   module Status
     class << self
-      def status(jid)
+      def status(_jid)
         :complete
       end
     end
   end
 end
-

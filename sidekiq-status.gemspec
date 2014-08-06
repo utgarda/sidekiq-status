@@ -8,13 +8,14 @@ Gem::Specification.new do |gem|
   gem.homepage      = 'http://github.com/utgarda/sidekiq-status'
   gem.license       = 'MIT'
 
-  gem.files         = `git ls-files`.split($\)
+  gem.files         = `git ls-files -z`.split("\x0")
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.name          = 'sidekiq-status'
   gem.require_paths = ['lib']
   gem.version       = Sidekiq::Status::VERSION
 
-  gem.add_dependency                  'sidekiq', '>= 2.7', '< 3.4'
-  gem.add_development_dependency      'rake'
-  gem.add_development_dependency      'rspec'
+  gem.add_dependency 'sidekiq', '>= 2.7', '< 3.4'
+  gem.add_development_dependency 'rake'
+  gem.add_development_dependency 'rspec'
+  gem.add_development_dependency 'fakeredis'
 end

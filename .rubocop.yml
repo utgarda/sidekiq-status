@@ -1,0 +1,17 @@
+AllCops:
+  Include:
+    - '**/Rakefile'
+  Exclude:
+    - 'spec/**/*'
+Style/LineLength:
+  Max: 120
+Style/FileName:
+  Enabled: false
+Style/ModuleFunction:
+  Enabled: false
+Style/Encoding:
+  Enabled: false
+Documentation:
+  Enabled: false
+Style/MethodLength:
+  Max: 20

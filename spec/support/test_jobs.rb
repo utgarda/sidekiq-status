@@ -4,7 +4,7 @@ class StubJob
 
   sidekiq_options 'retry' => 'false'
 
-  def perform(*args)
+  def perform(*_args)
   end
 end
 
@@ -17,7 +17,7 @@ end
 class DataJob < StubJob
   def perform
     sleep 0.1
-    store({data: 'meow'})
+    store(data: 'meow')
     retrieve(:data).should == 'meow'
     sleep 0.1
   end
@@ -32,7 +32,7 @@ class ProgressJob < StubJob
 end
 
 class ConfirmationJob < StubJob
-  def perform(*args)
+  def perform(*_args)
     Sidekiq.redis do |conn|
       conn.publish "job_messages_#{jid}", "while in #perform, status = #{conn.hget jid, :status}"
     end
@@ -43,26 +43,26 @@ class NoStatusConfirmationJob
   include Sidekiq::Worker
   def perform(id)
     Sidekiq.redis do |conn|
-      conn.set "NoStatusConfirmationJob_#{id}", "done"
+      conn.set "NoStatusConfirmationJob_#{id}", 'done'
     end
   end
 end
 
 class FailingJob < StubJob
   def perform
-    raise StandardError
+    fail StandardError
   end
 end
 
 class RetriedJob < StubJob
   sidekiq_options 'retry' => 'true'
-  def perform()
+  def perform
     Sidekiq.redis do |conn|
       key = "RetriedJob_#{jid}"
       sleep 1
       unless conn.exists key
         conn.set key, 'tried'
-        raise StandardError
+        fail StandardError
       end
     end
   end

@@ -1,0 +1,13 @@
+---
+NestedIterators:
+  max_allowed_nesting: 2
+UtilityFunction:
+  enabled: false
+IrresponsibleModule:
+  enabled: false
+DuplicateMethodCall:
+  max_calls: 5
+FeatureEnvy:
+  enabled: false
+LongParameterList:
+  enabled: false
