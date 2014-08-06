@@ -18,4 +18,4 @@ Reek::Rake::Task.new do |t|
   t.source_files = Dir['lib/**/*.rb']
 end
 
-task default: %i(spec rubocop reek)
+task default: [:spec, :rubocop, :reek]
