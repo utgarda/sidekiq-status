@@ -5,7 +5,9 @@ gemspec
 gem 'appraisal'
 
 group :test do
-  gem 'simplecov', '>= 0.9.0', :require => false
+  gem 'rubocop', require: false
+  gem 'reek', require: false
+  gem 'simplecov', '>= 0.9.0', require: false
   gem 'coveralls', :require => false
 end
 
