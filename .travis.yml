@@ -1,2 +1,4 @@
 language: ruby
+rvm:
+  - 2.1.0
 services: redis
