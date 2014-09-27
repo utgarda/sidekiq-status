@@ -1,3 +1,18 @@
+
+<style>
+.progress {
+  background-color: #C8E1ED;
+}
+.bar {
+  background-color: #2897cb; 
+}
+.message {
+  text-shadow: 0 0 5px white;
+  font-weight: bold; padding-left: 4px;
+  color: #333;
+}
+</style>
+
 <h3 class="wi">Recent job statuses</h3>
 
 
@@ -5,32 +20,29 @@
   <tr>
     <th>Worker/jid</th>
     <th>Status</th>
-    <th>Last Updated ↆ</th>
-    <th>Progress</th>
-    <th>Message</th>
+    <th style='width: 10%;'>Last Updated</th>
+    <th style='width: 40%;'>Progress</th>
   </tr>
-  <% @statuses.each do |container| %>
+  <%- @statuses.each do |container| %>
     <tr>
       <td>
-          <%= container.worker %>
-          <br />
-          <%= container.jid %>
+          <span title='<%= container.jid %>'><%= container.worker %></span>
       </td>
       <td><%= container.status %></td>
-      <td><%= Time.at(container.update_time.to_i) %></td>
+      <td><%= Time.at(container.update_time.to_i).to_s(:short) %></td>
       <td>
         <div class="progress progress-striped" style="margin-bottom: 0">
-          <div class="bar" style="width: <%= container.pct_complete %>%; text-shadow: 1px 1px 1px black; background-color: #AD003D;
-color: white;">
+          <div class='message' style='text-align:right; padding-right:0.5em; background-color: transparent; float:right;'><%= container.message %></div>
+          <div class="bar message" style="width: <%= container.pct_complete %>%; color: white; text-shadow: 0 0 0;">
             <%= container.pct_complete %>%
           </div>
         </div>
-      <td><%= container.message %></td>
+      </td>
     </tr>
-  <% end %>
-  <% if @statuses.empty? %>
+  <%- end %>
+  <%- if @statuses.empty? %>
     <tr>
       <td colspan="6"></td>
     </tr>
-  <% end %>
+  <%- end %>
 </table>
