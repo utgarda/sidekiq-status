@@ -21,15 +21,20 @@
     <th>Worker/jid</th>
     <th>Status</th>
     <th style='width: 10%;'>Last Updated</th>
-    <th style='width: 40%;'>Progress</th>
+    <th style='width: 50%;'>Progress</th>
   </tr>
   <%- @statuses.each do |container| %>
     <tr>
-      <td>
-          <span title='<%= container.jid %>'><%= container.worker %></span>
+      <td><span title='<%= container.jid %>'><%= container.worker %></span></td>
+      <td style='text-align: center;'><span class='badge'><%= container.status%></span></td>
+      <%- secs = Time.now.to_i - container.update_time.to_i%>
+      <td style='text-align: center;'>
+        <%- if secs > 0 %>
+          <%= secs %> sec<%= secs == 1 ? '' : 's' %> ago
+        <%- else %>
+          Now
+        <%- end %>
       </td>
-      <td><%= container.status %></td>
-      <td><%= Time.at(container.update_time.to_i).to_s(:short) %></td>
       <td>
         <div class="progress progress-striped" style="margin-bottom: 0">
           <div class='message' style='text-align:right; padding-right:0.5em; background-color: transparent; float:right;'><%= container.message %></div>
