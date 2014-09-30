@@ -39,7 +39,9 @@
         <div class="progress progress-striped" style="margin-bottom: 0">
           <div class='message' style='text-align:right; padding-right:0.5em; background-color: transparent; float:right;'><%= container.message %></div>
           <div class="bar message" style="width: <%= container.pct_complete %>%; color: white; text-shadow: 0 0 0;">
+            <%- if container.pct_complete.to_i > 0 %>
             <%= container.pct_complete %>%
+            <%- end %>
           </div>
         </div>
       </td>
