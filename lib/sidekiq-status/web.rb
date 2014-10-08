@@ -19,7 +19,13 @@ module Sidekiq::Status
         queue = Sidekiq::Workers.new
         @statuses = []
 
-        queue.each do |process, name, work, started_at|
+        queue.each do |*args|
+          work = if args[1].is_a?(Hash)
+            # For sidekiq < 3
+            args[1]
+          else
+            args[2]
+          end
           job = Struct.new(:jid, :klass, :args).new(work["payload"]["jid"], work["payload"]["class"], work["payload"]["args"])
           status = Sidekiq::Status::get_all job.jid
           next if !status || status.count < 2
