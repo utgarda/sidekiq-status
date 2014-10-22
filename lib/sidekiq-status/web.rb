@@ -18,6 +18,8 @@ module Sidekiq::Status
       app.get '/statuses' do
         queue = Sidekiq::Workers.new
         @statuses = []
+        
+        jids = []
 
         queue.each do |process, name, work, started_at|
           job = Struct.new(:jid, :klass, :args).new(work["payload"]["jid"], work["payload"]["class"], work["payload"]["args"])
@@ -26,6 +28,17 @@ module Sidekiq::Status
           status["worker"] = job.klass
           status["args"] = job.args
           status["jid"] = job.jid
+          status["pct_complete"] = ((status["at"].to_f / status["total"].to_f) * 100).to_i if status["total"].to_f > 0
+          jids << job.jid
+          @statuses << OpenStruct.new(status)
+        end
+        
+        Sidekiq.redis {|conn| conn.keys('*').select{|k| !k.include?(":") && k.length > 10 } }.each do |jobid|
+          status = Sidekiq::Status::get_all jobid
+          next if !status || status.count < 2 || jids.include?(jobid)
+          status["worker"] = "?"
+          status["args"] = "?"
+          status["jid"] = jobid
           status["pct_complete"] = ((status["at"].to_f / status["total"].to_f) * 100).to_i if status["total"].to_f > 0
           @statuses << OpenStruct.new(status)
         end
