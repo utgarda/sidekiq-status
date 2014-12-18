@@ -36,11 +36,12 @@ module Sidekiq::Status
           @sort_by = "update_time"
         end
 
-        @sort_dir = (params[:sort_dir] == "asc") ? "asc" : "desc"
+        @sort_dir = "asc"
 
         if @sort_dir == "asc"
           @statuses.sort { |x,y| x[@sort_by] <=> y[@sort_by] }
         else # DESC
+          @sort_dir = "desc"
           @statuses.sort { |y,x| x[@sort_by] <=> y[@sort_by] }
         end
 
