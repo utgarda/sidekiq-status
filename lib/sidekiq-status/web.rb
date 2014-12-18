@@ -30,6 +30,20 @@ module Sidekiq::Status
           @statuses << OpenStruct.new(status)
         end
 
+        if ["worker", "status", "update_time", "pct_complete", "message"].include?(params[:sort_by])
+          @sort_by = params[:sort_by]
+        else
+          @sort_by = "update_time"
+        end
+
+        @sort_dir = (params[:sort_dir] == "asc") ? "asc" : "desc"
+
+        if @sort_dir == "asc"
+          @statuses.sort { |x,y| x[@sort_by] <=> y[@sort_by] }
+        else # DESC
+          @statuses.sort { |y,x| x[@sort_by] <=> y[@sort_by] }
+        end
+
         erb(sidekiq_status_template(:statuses))
       end
     end
