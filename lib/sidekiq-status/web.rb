@@ -31,18 +31,33 @@ module Sidekiq::Status
         end
 
         if ["worker", "status", "update_time", "pct_complete", "message"].include?(params[:sort_by])
-          @sort_by = params[:sort_by]
+          sort_by = params[:sort_by]
         else
-          @sort_by = "update_time"
+          sort_by = "update_time"
         end
 
-        @sort_dir = "asc"
+        sort_dir = "asc"
 
-        if @sort_dir == "asc"
-          @statuses.sort { |x,y| x[@sort_by] <=> y[@sort_by] }
+        if params[:sort_dir] == "asc"
+          @statuses = @statuses.sort { |x,y| x.send(sort_by) <=> y.send(sort_by) }
         else # DESC
-          @sort_dir = "desc"
-          @statuses.sort { |y,x| x[@sort_by] <=> y[@sort_by] }
+          sort_dir = "desc"
+          @statuses = @statuses.sort { |y,x| x.send(sort_by) <=> y.send(sort_by) }
+        end
+
+        @headers = [
+          { id: "worker", name: "Worker/jid", class: nil, url: nil},
+          { id: "status", name: "Status", class: nil, url: nil},
+          { id: "update_time", name: "Last Updated", class: nil, url: nil},
+          { id: "pct_complete", name: "Progress", class: nil, url: nil},
+          { id: "message", name: "Message", class: nil, url: nil}
+        ]
+
+        @headers.each do |h|
+          params["sort_by"] = h[:id]
+          params["sort_dir"] = (sort_by == h[:id] && sort_dir == "asc") ? "desc" : "asc"
+          h[:url] = "statuses?" + params.map {|k,v| "#{k}=#{v}" }.join("&")
+          h[:class] = "sorted_#{sort_dir}" if sort_by == h[:id]
         end
 
         erb(sidekiq_status_template(:statuses))
