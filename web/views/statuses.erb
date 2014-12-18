@@ -10,11 +10,11 @@
 <h3 class="wi">Recent job statuses</h3>
 <table class="table table-striped table-bordered">
   <tr>
-    <th><%= link_to 'Worker/jid', url_for(params.merge({:sort_by => "worker", :sort_dir => (@sort_by == "worker" && @sort_dir == "asc" ? "desc" : "asc") }), class: (@sort_by == "worker" ? "sorted_#{@sort_dir}" : "") %></th>
-    <th><%= link_to 'Status', url_for(params.merge({:sort_by => "status", :sort_dir => (@sort_by == "status" && @sort_dir == "asc" ? "desc" : "asc") }), class: (@sort_by == "status" ? "sorted_#{@sort_dir}" : "") %></th>
-    <th><%= link_to 'Last Updated', url_for(params.merge({:sort_by => "update_time", :sort_dir => (@sort_by == "update_time" && @sort_dir == "asc" ? "desc" : "asc") }), class: (@sort_by == "update_time" ? "sorted_#{@sort_dir}" : "") %></th>
-    <th><%= link_to 'Progress', url_for(params.merge({:sort_by => "pct_complete", :sort_dir => (@sort_by == "pct_complete" && @sort_dir == "asc" ? "desc" : "asc") }), class: (@sort_by == "pct_complete" ? "sorted_#{@sort_dir}" : "") %></th>
-    <th><%= link_to 'Message', url_for(params.merge({:sort_by => "message", :sort_dir => (@sort_by == "message" && @sort_dir == "asc" ? "desc" : "asc") }), class: (@sort_by == "message" ? "sorted_#{@sort_dir}" : "") %></th>
+    <th><%= link_to 'Worker/jid', url_for(params.merge({:sort_by => "worker", :sort_dir => (@sort_by == "worker" && @sort_dir == "asc" ? "desc" : "asc") }) ), class: (@sort_by == "worker" ? "sorted_#{@sort_dir}" : "") %></th>
+    <th><%= link_to 'Status', url_for(params.merge({:sort_by => "status", :sort_dir => (@sort_by == "status" && @sort_dir == "asc" ? "desc" : "asc") }) ), class: (@sort_by == "status" ? "sorted_#{@sort_dir}" : "") %></th>
+    <th><%= link_to 'Last Updated', url_for(params.merge({:sort_by => "update_time", :sort_dir => (@sort_by == "update_time" && @sort_dir == "asc" ? "desc" : "asc") }) ), class: (@sort_by == "update_time" ? "sorted_#{@sort_dir}" : "") %></th>
+    <th><%= link_to 'Progress', url_for(params.merge({:sort_by => "pct_complete", :sort_dir => (@sort_by == "pct_complete" && @sort_dir == "asc" ? "desc" : "asc") }) ), class: (@sort_by == "pct_complete" ? "sorted_#{@sort_dir}" : "") %></th>
+    <th><%= link_to 'Message', url_for(params.merge({:sort_by => "message", :sort_dir => (@sort_by == "message" && @sort_dir == "asc" ? "desc" : "asc") }) ), class: (@sort_by == "message" ? "sorted_#{@sort_dir}" : "") %></th>
   </tr>
   <% @statuses.each do |container| %>
     <tr>
