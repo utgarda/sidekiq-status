@@ -33,7 +33,7 @@ module Sidekiq::Status
         if ["worker", "status", "update_time", "pct_complete", "message"].include?(params[:sort_by])
           sort_by = params[:sort_by]
         else
-          sort_by = "update_time"
+          sort_by = "worker"
         end
 
         sort_dir = "asc"
