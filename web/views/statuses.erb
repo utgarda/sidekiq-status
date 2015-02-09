@@ -1,13 +1,18 @@
+<style>
+.sorted_asc:after{
+  content: " ↑";
+}
+.sorted_desc:after{
+  content: " ↓";
+}
+</style>
+
 <h3 class="wi">Recent job statuses</h3>
-
-
 <table class="table table-striped table-bordered">
   <tr>
-    <th>Worker/jid</th>
-    <th>Status</th>
-    <th>Last Updated ↆ</th>
-    <th>Progress</th>
-    <th>Message</th>
+    <% @headers.each do |header| %>
+      <th><a href="<%= header[:url] %>" class="<%= header[:class] %>"><%= header[:name] %></a></th>
+    <% end %>
   </tr>
   <% @statuses.each do |container| %>
     <tr>
