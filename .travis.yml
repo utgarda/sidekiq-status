@@ -5,6 +5,9 @@ rvm:
   - 2.2
   - jruby
   - rbx-2
+gemfile:
+  - gemfiles/Gemfile.sidekiq-2
+  - Gemfile
 services: redis
 matrix:
   allow_failures:
