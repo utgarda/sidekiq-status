@@ -1,41 +1,55 @@
+
 <style>
-.sorted_asc:after{
-  content: " ↑";
+.progress {
+  background-color: #C8E1ED;
 }
-.sorted_desc:after{
-  content: " ↓";
+.bar {
+  background-color: #2897cb; 
+}
+.message {
+  text-shadow: 0 0 5px white;
+  font-weight: bold; padding-left: 4px;
+  color: #333;
 }
 </style>
 
 <h3 class="wi">Recent job statuses</h3>
+
+
 <table class="table table-striped table-bordered">
   <tr>
-    <% @headers.each do |header| %>
-      <th><a href="<%= header[:url] %>" class="<%= header[:class] %>"><%= header[:name] %></a></th>
-    <% end %>
+    <th>Worker/jid</th>
+    <th style='text-align:center;'>Status</th>
+    <th style='width: 10%; text-align:center;'>Last Updated</th>
+    <th style='width: 50%;'>Progress</th>
   </tr>
-  <% @statuses.each do |container| %>
+  <%- @statuses.each do |container| %>
     <tr>
-      <td>
-          <%= container.worker %>
-          <br />
-          <%= container.jid %>
+      <td><span title='<%= container.jid %>'><%= container.worker %></span></td>
+      <td style='text-align: center;'><span class='badge'><%= container.status %></span></td>
+      <%- secs = Time.now.to_i - container.update_time.to_i %>
+      <td style='text-align: center;'>
+        <%- if secs > 0 %>
+          <%= secs %> sec<%= secs == 1 ? '' : 's' %> ago
+        <%- else %>
+          Now
+        <%- end %>
       </td>
-      <td><%= container.status %></td>
-      <td><%= Time.at(container.update_time.to_i) %></td>
       <td>
         <div class="progress progress-striped" style="margin-bottom: 0">
-          <div class="bar" style="width: <%= container.pct_complete %>%; text-shadow: 1px 1px 1px black; background-color: #AD003D;
-color: white;">
-            <%= container.pct_complete %>%
-          </div>
+          <div class='message' style='text-align:right; padding-right:0.5em; background-color: transparent; float:right;'><%= container.message %></div>
+          <%- if container.pct_complete.to_i > 0 %>
+            <div class="bar message" style="width: <%= container.pct_complete %>%; color: white; text-shadow: 0 0 0;">
+              <%= container.pct_complete %>%
+            </div>
+          <%- end %>
         </div>
-      <td><%= container.message %></td>
+      </td>
     </tr>
-  <% end %>
-  <% if @statuses.empty? %>
+  <%- end %>
+  <%- if @statuses.empty? %>
     <tr>
       <td colspan="6"></td>
     </tr>
-  <% end %>
+  <%- end %>
 </table>
