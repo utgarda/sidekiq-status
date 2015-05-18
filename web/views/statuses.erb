@@ -23,33 +23,33 @@
     <th style='width: 10%; text-align:center;'>Last Updated</th>
     <th style='width: 50%;'>Progress</th>
   </tr>
-  <%- @statuses.each do |container| %>
+  <% @statuses.each do |container| %>
     <tr>
       <td><span title='<%= container.jid %>'><%= container.worker %></span></td>
       <td style='text-align: center;'><span class='badge'><%= container.status %></span></td>
-      <%- secs = Time.now.to_i - container.update_time.to_i %>
+      <% secs = Time.now.to_i - container.update_time.to_i %>
       <td style='text-align: center;'>
-        <%- if secs > 0 %>
+        <% if secs > 0 %>
           <%= secs %> sec<%= secs == 1 ? '' : 's' %> ago
-        <%- else %>
+        <% else %>
           Now
-        <%- end %>
+        <% end %>
       </td>
       <td>
         <div class="progress progress-striped" style="margin-bottom: 0">
           <div class='message' style='text-align:right; padding-right:0.5em; background-color: transparent; float:right;'><%= container.message %></div>
-          <%- if container.pct_complete.to_i > 0 %>
+          <% if container.pct_complete.to_i > 0 %>
             <div class="bar message" style="width: <%= container.pct_complete %>%; color: white; text-shadow: 0 0 0;">
               <%= container.pct_complete %>%
             </div>
-          <%- end %>
+          <% end %>
         </div>
       </td>
     </tr>
-  <%- end %>
-  <%- if @statuses.empty? %>
+  <% end %>
+  <% if @statuses.empty? %>
     <tr>
       <td colspan="6"></td>
     </tr>
-  <%- end %>
+  <% end %>
 </table>

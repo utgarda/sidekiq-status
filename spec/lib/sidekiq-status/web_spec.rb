@@ -26,7 +26,7 @@ describe 'sidekiq status web' do
       end
 
       get '/statuses'
-      expect(last_response.status).to eq(200)
+      expect(last_response).to be_ok
       expect(last_response.body).to match(/#{job_id}/)
     end
   end
