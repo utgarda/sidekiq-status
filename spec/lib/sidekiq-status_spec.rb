@@ -182,8 +182,8 @@ describe Sidekiq::Status do
     end
 
     def expect_2_jobs_ttl_covers(range)
-      expect(range).to cover redis.ttl(plain_sidekiq_job_id)
-      expect(range).to cover redis.ttl(job_id_1)
+      expect(range).to cover redis.ttl("sidekiq:status:#{plain_sidekiq_job_id}")
+      expect(range).to cover redis.ttl("sidekiq:status:#{job_id_1}")
     end
 
     def expect_2_jobs_are_done_and_status_eq(status)

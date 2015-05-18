@@ -34,7 +34,7 @@ end
 class ConfirmationJob < StubJob
   def perform(*args)
     Sidekiq.redis do |conn|
-      conn.publish "job_messages_#{jid}", "while in #perform, status = #{conn.hget jid, :status}"
+      conn.publish "job_messages_#{jid}", "while in #perform, status = #{conn.hget "sidekiq:status:#{jid}", :status}"
     end
   end
 end

@@ -14,8 +14,8 @@ module Sidekiq::Status::Storage
   def store_for_id(id, status_updates, expiration = nil, redis_pool=nil)
     redis_connection(redis_pool) do |conn|
       conn.multi do
-        conn.hmset  id, 'update_time', Time.now.to_i, *(status_updates.to_a.flatten(1))
-        conn.expire id, (expiration || Sidekiq::Status::DEFAULT_EXPIRY)
+        conn.hmset  key(id), 'update_time', Time.now.to_i, *(status_updates.to_a.flatten(1))
+        conn.expire key(id), (expiration || Sidekiq::Status::DEFAULT_EXPIRY)
         conn.publish "status_updates", id
       end[0]
     end
@@ -43,7 +43,7 @@ module Sidekiq::Status::Storage
         match = scan_scheduled_jobs_for_jid jobs, job_id
         unless match.nil?
           conn.zrem "schedule", match
-          conn.del job_id
+          conn.del key(job_id)
           return true # Done
         end
         scan_options[:offset] += BATCH_LIMIT
@@ -58,7 +58,7 @@ module Sidekiq::Status::Storage
   # @return [String] Redis operation status code
   def read_field_for_id(id, field)
     Sidekiq.redis do |conn|
-      conn.hmget(id, field)[0]
+      conn.hmget(key(id), field)[0]
     end
   end
 
@@ -67,7 +67,7 @@ module Sidekiq::Status::Storage
   # @return [Hash] Hash stored in redis
   def read_hash_for_id(id)
     Sidekiq.redis do |conn|
-      conn.hgetall id
+      conn.hgetall key(id)
     end
   end
 
@@ -107,5 +107,9 @@ module Sidekiq::Status::Storage
         yield conn
       end
     end
+  end
+
+  def key(id)
+    "sidekiq:status:#{id}"
   end
 end
