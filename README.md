@@ -163,7 +163,10 @@ To use `sidekiq-status` inlining, require it too in your `{test,spec}_helper.rb`
 * Jon Moses
 * Wayne Hoover
 * Dylan Robinson
+* Dmitry Novotochinov
+* Mohammed Elalj
+* Ben Sharpe
 
 ## License
 MIT License , see LICENSE for more details.
-© 2012 - 2014 Evgeniy Tsvigun
+© 2012 - 2015 Evgeniy Tsvigun
