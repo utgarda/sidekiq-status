@@ -1,3 +1,4 @@
+Version 0.5.4:Mere removal of sidekiq version upper limitation
 Version 0.5.3:Sidekiq some tweaks in web UI, separate redis namespace
 Version 0.5.2:Sidekiq versions up to 3.3.* supported, jobs sorting options in web UI, more ruby versions
 Version 0.5.1:dependencies versions requirements relaxed
