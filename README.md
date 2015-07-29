@@ -81,7 +81,7 @@ Sidekiq::Status::complete? job_id
 Sidekiq::Status::failed?   job_id
 ```
 
-### Tracking progress, saving and retrieveing data associated with job
+### Tracking progress, saving, and retrieving data associated with job
 
 ``` ruby
 class MyJob
