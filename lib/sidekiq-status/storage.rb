@@ -32,6 +32,16 @@ module Sidekiq::Status::Storage
     store_for_id id, {status: status}, expiration, redis_pool
   end
 
+  # Stores any payload for the given job
+  # @param [String] id job id
+  # @param [Hash] payload
+  # @param [Integer] expiration optional expire time in seconds
+  # @param [ConnectionPool] redis_pool optional redis connection pool
+  # @return [String] Redis operation status code
+  def store_payload(id, payload, expiration = nil, redis_pool=nil)
+    store_for_id id, payload, expiration, redis_pool
+  end
+
   # Unschedules the job and deletes the Status
   # @param [String] id job id
   # @param [Num] job_unix_time, unix timestamp for the scheduled job

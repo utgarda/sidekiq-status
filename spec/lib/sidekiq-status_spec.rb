@@ -123,6 +123,16 @@ describe Sidekiq::Status do
     end
   end
 
+  describe ".update" do
+    let(:payload) { {'a' => "blah"} }
+    let(:job_id) { SecureRandom.hex(12) }
+
+    it "should update a job's payload" do
+      Sidekiq::Status.update job_id, payload
+      expect(redis.hgetall("sidekiq:status:#{job_id}")).to include(payload)
+    end
+  end
+
   context "keeps normal Sidekiq functionality" do
     let(:expiration_param) { nil }
 

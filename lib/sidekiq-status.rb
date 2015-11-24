@@ -34,6 +34,10 @@ module Sidekiq::Status
       delete_and_unschedule(job_id, job_unix_time)
     end
 
+    def update job_id, payload
+      store_payload job_id, payload
+    end
+
     alias_method :unschedule, :cancel
 
     STATUS.each do |name|
