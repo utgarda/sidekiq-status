@@ -113,6 +113,25 @@ Sidekiq::Status::total   job_id #=> 100
 Sidekiq::Status::message job_id #=> "Almost done"
 Sidekiq::Status::pct_complete job_id #=> 5
 ```
+
+### Storing Custom Payload (for ActiveJob only)
+```ruby
+class MyJob < ActiveJob::Base
+
+  def perform
+    ...
+	payload = { any: "custom", hash: "object" }
+	Sidekiq::Status.update self.job_id, payload
+	...
+  end
+end
+
+status = Sidekiq::Status::get_all(active_job_id) 
+#=> {"update_time"=>"1448489673", "jid"=>"812b9425ffece8a6a699f600", "use_case_status"=>"failure", "errors"=>"[{url: :invalid}]"}
+OR
+#=> {"update_time"=>"1448489673", "jid"=>"812b9425ffece8a6a699f600", "use_case_status"=>"success"}
+```
+
 ### Unscheduling
 
 ```ruby
