@@ -8,7 +8,7 @@ require 'sidekiq-status/web' if defined?(Sidekiq::Web)
 module Sidekiq::Status
   extend Storage
   DEFAULT_EXPIRY = 60 * 30
-  STATUS = %w(queued working complete stopped failed).map(&:to_sym).freeze
+  STATUS = [ :queued, :working, :complete, :stopped, :failed, :interrupted ].freeze
 
   class << self
     # Job status by id

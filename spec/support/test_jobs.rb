@@ -54,6 +54,18 @@ class FailingJob < StubJob
   end
 end
 
+class ExitedJob < StubJob
+  def perform
+    raise SystemExit
+  end
+end
+
+class InterruptedJob < StubJob
+  def perform
+    raise Interrupt
+  end
+end
+
 class RetriedJob < StubJob
   sidekiq_options 'retry' => 'true'
   def perform()

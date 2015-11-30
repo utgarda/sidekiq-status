@@ -73,12 +73,14 @@ Query for job status any time later:
 
 ``` ruby
 job_id = MyJob.perform_async(*args)
-# :queued, :working, :complete or :failed , nil after expiry (30 minutes)
+# :queued, :working, :complete, :failed or :interrupted, nil after expiry (30 minutes)
 status = Sidekiq::Status::status(job_id)
-Sidekiq::Status::queued?   job_id
-Sidekiq::Status::working?  job_id
-Sidekiq::Status::complete? job_id
-Sidekiq::Status::failed?   job_id
+Sidekiq::Status::queued?      job_id
+Sidekiq::Status::working?     job_id
+Sidekiq::Status::complete?    job_id
+Sidekiq::Status::failed?      job_id
+Sidekiq::Status::interrupted? job_id
+
 ```
 
 ### Tracking progress, saving and retrieveing data associated with job
