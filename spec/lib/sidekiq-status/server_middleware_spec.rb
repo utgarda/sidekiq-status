@@ -35,6 +35,31 @@ describe Sidekiq::Status::ServerMiddleware do
       expect(Sidekiq::Status::failed?(job_id)).to be_truthy
     end
 
+    context "sets interrupted status" do 
+      it "on system exit signal" do 
+        allow(SecureRandom).to receive(:hex).once.and_return(job_id)
+        start_server do
+          expect(capture_status_updates(3) {
+            expect(ExitedJob.perform_async).to eq(job_id)
+          }).to eq([job_id]*3)
+        end
+        expect(redis.hget("sidekiq:status:#{job_id}", :status)).to eq('interrupted')
+        expect(Sidekiq::Status::interrupted?(job_id)).to be_truthy
+      end
+
+      it "on interrupt signal" do 
+        allow(SecureRandom).to receive(:hex).once.and_return(job_id)
+        start_server do
+          expect(capture_status_updates(3) {
+            expect(InterruptedJob.perform_async).to eq(job_id)
+          }).to eq([job_id]*3)
+        end
+        expect(redis.hget("sidekiq:status:#{job_id}", :status)).to eq('interrupted')
+        expect(Sidekiq::Status::interrupted?(job_id)).to be_truthy
+      end
+
+    end
+
     it "sets status hash ttl" do
       allow(SecureRandom).to receive(:hex).once.and_return(job_id)
       expect(StubJob.perform_async(:arg1 => 'val1')).to eq(job_id)

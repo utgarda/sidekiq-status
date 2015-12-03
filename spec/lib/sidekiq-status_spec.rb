@@ -28,6 +28,7 @@ describe Sidekiq::Status do
         expect(Sidekiq::Status::failed?(job_id)).to be_falsey
         expect(Sidekiq::Status::complete?(job_id)).to be_falsey
         expect(Sidekiq::Status::stopped?(job_id)).to be_falsey
+        expect(Sidekiq::Status::interrupted?(job_id)).to be_falsey
       end
       expect(Sidekiq::Status.status(job_id)).to eq(:complete)
       expect(Sidekiq::Status.complete?(job_id)).to be_truthy
