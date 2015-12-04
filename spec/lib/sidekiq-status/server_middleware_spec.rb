@@ -62,7 +62,9 @@ describe Sidekiq::Status::ServerMiddleware do
 
     it "sets status hash ttl" do
       allow(SecureRandom).to receive(:hex).once.and_return(job_id)
-      expect(StubJob.perform_async(:arg1 => 'val1')).to eq(job_id)
+      start_server do
+        expect(StubJob.perform_async(:arg1 => 'val1')).to eq(job_id)
+      end
       expect(1..Sidekiq::Status::DEFAULT_EXPIRY).to cover redis.ttl("sidekiq:status:#{job_id}")
     end
   end
