@@ -120,8 +120,14 @@ Sidekiq::Status::pct_complete job_id #=> 5
 ```ruby
 scheduled_job_id = MyJob.perform_in 3600
 Sidekiq::Status.cancel scheduled_job_id #=> true
-#doesn't cancel running jobs, this is more like unscheduling, therefore an alias:
+# doesn't cancel running jobs, this is more like unscheduling, therefore an alias:
 Sidekiq::Status.unschedule scheduled_job_id #=> true
+
+# returns false if invalid or wrong scheduled_job_id is provided 
+Sidekiq::Status.unschedule some_other_unschedule_job_id #=> false
+Sidekiq::Status.unschedule nil #=> false
+Sidekiq::Status.unschedule '' #=> false
+# Note: cancel and unschedule are alias methods.
 ```
 
 ### Sidekiq web integration
