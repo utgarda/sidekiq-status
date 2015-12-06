@@ -91,8 +91,7 @@ module Sidekiq::Status::Storage
     # A Little skecthy, I know, but the structure of these internal JSON
     # is predefined in such a way where this will not catch unintentional elements,
     # and this is notably faster than performing JSON.parse() for every listing:
-    scheduled_jobs.each { |job_listing| (return job_listing) if job_listing.include?("\"jid\":\"#{job_id}") }
-    nil
+    scheduled_jobs.select { |job_listing| job_listing.match(/\"jid\":\"#{job_id}\"/) }[0]
   end
 
   # Yields redis connection. Uses redis pool if available.
