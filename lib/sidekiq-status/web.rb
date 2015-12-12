@@ -33,7 +33,7 @@ module Sidekiq::Status
 
         queue.each do |*args|
           # args[1].is_a?(Hash) is for sidekiq < 3
-          work = (args[1].is_a?(Hash) ? args[1] : args[2])
+          work = args[1].is_a?(Hash) ? args[1] : args[2]
           payload = work["payload"] 
           job = Struct.new(:jid, :klass, :args).new(payload["jid"], payload["class"], payload["args"])
           status = Sidekiq::Status::get_all job.jid
