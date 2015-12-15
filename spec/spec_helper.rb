@@ -9,9 +9,11 @@ require 'sidekiq-status'
 
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
 
-Sidekiq.configure_client do |config|
-  config.client_middleware do |chain|
-    chain.add Sidekiq::Status::ClientMiddleware
+def client_middleware(client_middleware_options={}) 
+  Sidekiq.configure_client do |config|
+    config.client_middleware do |chain|
+      chain.add Sidekiq::Status::ClientMiddleware, client_middleware_options
+    end
   end
 end
 

@@ -9,6 +9,7 @@ describe Sidekiq::Status::ClientMiddleware do
   before { redis.flushall }
 
   describe "#call" do
+    before { client_middleware }
     it "sets queued status" do
       allow(SecureRandom).to receive(:hex).once.and_return(job_id)
       expect(StubJob.perform_async(:arg1 => 'val1')).to eq(job_id)
@@ -36,6 +37,19 @@ describe Sidekiq::Status::ClientMiddleware do
         allow(Sidekiq).to receive(:redis)
         Sidekiq::Status::ClientMiddleware.new.call(StubJob, {'jid' => SecureRandom.hex}, :queued) do end
       end
+    end
+  end
+
+  describe ":expiration parameter" do
+    let(:huge_expiration) { Sidekiq::Status::DEFAULT_EXPIRY * 100 }
+    before do
+      allow(SecureRandom).to receive(:hex).once.and_return(job_id)
+    end
+
+    it "overwrites default expiry value" do
+      client_middleware(expiration: huge_expiration)
+      StubJob.perform_async(:arg1 => 'val1')
+      expect((Sidekiq::Status::DEFAULT_EXPIRY+1)..huge_expiration).to cover redis.ttl("sidekiq:status:#{job_id}")
     end
   end
 end
