@@ -13,6 +13,18 @@ module Sidekiq::Status
           path = File.join(VIEW_PATH, name.to_s) + ".erb"
           File.open(path).read
         end
+
+        def add_details_to_status(job, status)
+          status["worker"] = job.klass
+          status["args"] = job.args
+          status["jid"] = job.jid
+          status["pct_complete"] = Sidekiq::Status::pct_complete(job.jid)
+          return status
+        end
+
+        def has_sort_by?(value)
+          ["worker", "status", "update_time", "pct_complete", "message"].include?(value)
+        end
       end
 
       app.get '/statuses' do
@@ -20,33 +32,22 @@ module Sidekiq::Status
         @statuses = []
 
         queue.each do |*args|
-          work = if args[1].is_a?(Hash)
-            # For sidekiq < 3
-            args[1]
-          else
-            args[2]
-          end
-          job = Struct.new(:jid, :klass, :args).new(work["payload"]["jid"], work["payload"]["class"], work["payload"]["args"])
+          # args[1].is_a?(Hash) is for sidekiq < 3
+          work = args[1].is_a?(Hash) ? args[1] : args[2]
+          payload = work["payload"] 
+          job = Struct.new(:jid, :klass, :args).new(payload["jid"], payload["class"], payload["args"])
           status = Sidekiq::Status::get_all job.jid
           next if !status || status.count < 2
-          status["worker"] = job.klass
-          status["args"] = job.args
-          status["jid"] = job.jid
-          status["pct_complete"] = ((status["at"].to_f / status["total"].to_f) * 100).to_i if status["total"].to_f > 0
+          status = add_details_to_status(job, status)
           @statuses << OpenStruct.new(status)
         end
 
-        if ["worker", "status", "update_time", "pct_complete", "message"].include?(params[:sort_by])
-          sort_by = params[:sort_by]
-        else
-          sort_by = "worker"
-        end
-
+        sort_by = has_sort_by?(params[:sort_by]) ? params[:sort_by] : "worker"
         sort_dir = "asc"
 
         if params[:sort_dir] == "asc"
           @statuses = @statuses.sort { |x,y| x.send(sort_by) <=> y.send(sort_by) }
-        else # DESC
+        else
           sort_dir = "desc"
           @statuses = @statuses.sort { |y,x| x.send(sort_by) <=> y.send(sort_by) }
         end

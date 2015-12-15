@@ -58,7 +58,7 @@ module Sidekiq::Status::Storage
   # @return [String] Redis operation status code
   def read_field_for_id(id, field)
     Sidekiq.redis do |conn|
-      conn.hmget(key(id), field)[0]
+      conn.hget(key(id), field)
     end
   end
 

@@ -52,7 +52,7 @@ module Sidekiq::Status
     end
 
     def pct_complete(job_id)
-      (at(job_id).to_f / total(job_id)) * 100
+      ((at(job_id) / total(job_id).to_f) * 100 ).to_i if total(job_id).to_f > 0
     end
 
     def message(job_id)
