@@ -67,6 +67,14 @@ end
 
 But keep in mind that such thing will store details of job as long as expiration is set, so it may charm your Redis storage/memory consumption. Because Redis stores all data in RAM.
 
+### What is expiration time ?
+As you noticed you can set expiration time for jobs globally by expiration option while adding middleware or writing a expiration method on each worker this expiration time is nothing but 
+
++ [Redis expire time](http://redis.io/commands/expire), also know as TTL(time to live) 
++ After expiration time all the info like status, update_time etc. about the worker disappears.
++ It is advised to set this expiration time greater than time required for completion of the job.
++ Default expiration time is 30 minutes.
+
 ### Retrieving status
 
 Query for job status any time later:
@@ -82,6 +90,7 @@ Sidekiq::Status::failed?      job_id
 Sidekiq::Status::interrupted? job_id
 
 ```
+Important: If you try any of the above status method after the expiration time, will result into `nil` or `false` 
 
 ### Tracking progress, saving, and retrieving data associated with job
 
@@ -129,6 +138,7 @@ Sidekiq::Status.unschedule nil #=> false
 Sidekiq::Status.unschedule '' #=> false
 # Note: cancel and unschedule are alias methods.
 ```
+Important: If you try any of the status method after the expiration time for scheduled jobs, will result into `nil` or `false`. But job will be in sidekiq's scheduled queue and will execute normally, once job is started on scheduled time you will get status info for job till expiration time defined on `Sidekiq::Status::ServerMiddleware`.
 
 ### Sidekiq web integration
 
