@@ -18,6 +18,7 @@ describe 'sidekiq status web' do
   end
 
   it 'shows a job in progress' do
+    client_middleware
     allow(SecureRandom).to receive(:hex).and_return(job_id)
 
     start_server do
@@ -27,8 +28,9 @@ describe 'sidekiq status web' do
 
       get '/statuses'
       expect(last_response).to be_ok
-      # TODO - Fix this
-      # expect(last_response.body).to match(/#{job_id}/)
+      expect(last_response.body).to match(/#{job_id}/)
+      expect(last_response.body).to match(/LongJob/)
+      expect(last_response.body).to match(/working/)
     end
   end
 
