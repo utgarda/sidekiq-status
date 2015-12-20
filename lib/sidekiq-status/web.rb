@@ -14,12 +14,28 @@ module Sidekiq::Status
           File.open(path).read
         end
 
-        def add_details_to_status(job, status)
-          status["worker"] = job.klass
-          status["args"] = job.args
-          status["jid"] = job.jid
-          status["pct_complete"] = Sidekiq::Status::pct_complete(job.jid)
+        def add_details_to_status(status)
+          status['label'] = status_label(status['status'])
+          status["pct_complete"] = pct_complete(status)
           return status
+        end
+
+        def pct_complete(status)
+          return 100 if status['status'] == 'complete'
+          Sidekiq::Status::pct_complete(status['jid'])
+        end
+
+        def status_label(status)
+          case status
+          when 'complete'
+            'success'
+          when 'working'
+            'warning'
+          when 'queued'
+            'primary'
+          else
+            'danger'
+          end
         end
 
         def has_sort_by?(value)
@@ -28,17 +44,14 @@ module Sidekiq::Status
       end
 
       app.get '/statuses' do
-        queue = Sidekiq::Workers.new
+        namespace_jids = Sidekiq.redis{ |conn| conn.keys('sidekiq:status:*') }
+        jids = namespace_jids.map{|id_namespace| id_namespace.split(':').last }
         @statuses = []
 
-        queue.each do |*args|
-          # args[1].is_a?(Hash) is for sidekiq < 3
-          work = args[1].is_a?(Hash) ? args[1] : args[2]
-          payload = work["payload"] 
-          job = Struct.new(:jid, :klass, :args).new(payload["jid"], payload["class"], payload["args"])
-          status = Sidekiq::Status::get_all job.jid
+        jids.each do |jid|
+          status = Sidekiq::Status::get_all jid
           next if !status || status.count < 2
-          status = add_details_to_status(job, status)
+          status = add_details_to_status(status)
           @statuses << OpenStruct.new(status)
         end
 
