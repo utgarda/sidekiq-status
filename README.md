@@ -179,6 +179,7 @@ To use `sidekiq-status` inlining, require it too in your `{test,spec}_helper.rb`
 * Stopping jobs by id
 
 ## Thanks
+* Pramod Shinde
 * Clay Allsopp
 * Andrew Korzhuev
 * Jon Moses
