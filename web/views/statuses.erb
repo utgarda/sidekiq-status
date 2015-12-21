@@ -19,6 +19,7 @@
 <table class="table table-striped table-bordered">
   <tr>
     <th>Worker/jid</th>
+    <th style='text-align:center;'>Arguments</th>
     <th style='text-align:center;'>Status</th>
     <th style='width: 10%; text-align:center;'>Last Updated</th>
     <th style='width: 50%;'>Progress</th>
@@ -26,7 +27,10 @@
   <% @statuses.each do |container| %>
     <tr>
       <td><span title='<%= container.jid %>'><%= container.worker %></span></td>
-      <td style='text-align: center;'><span class='badge'><%= container.status %></span></td>
+      <td><span title='<%= container.jid %>'><%= container.args %></span></td>
+      <td style='text-align: center;'>
+        <span class='label label-<%= container.label %>'><%= container.status %></span>
+      </td>
       <% secs = Time.now.to_i - container.update_time.to_i %>
       <td style='text-align: center;'>
         <% if secs > 0 %>
