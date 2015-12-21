@@ -3,7 +3,6 @@ rvm:
   - 2.0
   - 2.1
   - 2.2
-  - jruby
   - rbx-2
 gemfile:
   - gemfiles/Gemfile.sidekiq-2
@@ -14,5 +13,4 @@ before_install:
 services: redis
 matrix:
   allow_failures:
-    - rvm: jruby
     - rvm: rbx-2
