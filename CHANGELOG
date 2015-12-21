@@ -1,5 +1,0 @@
-Version 0.5.3:Sidekiq some tweaks in web UI, separate redis namespace
-Version 0.5.2:Sidekiq versions up to 3.3.* supported, jobs sorting options in web UI, more ruby versions
-Version 0.5.1:dependencies versions requirements relaxed
-Version 0.5.0:Sidekiq v3 support, redis pools support
-Version 0.4.0:WebUI added, per-worker expiration setting enabled
