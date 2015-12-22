@@ -55,7 +55,7 @@ module Sidekiq::Status
           @statuses << OpenStruct.new(status)
         end
 
-        sort_by = has_sort_by?(params[:sort_by]) ? params[:sort_by] : "worker"
+        sort_by = has_sort_by?(params[:sort_by]) ? params[:sort_by] : "update_time"
         sort_dir = "asc"
 
         if params[:sort_dir] == "asc"
@@ -64,7 +64,14 @@ module Sidekiq::Status
           sort_dir = "desc"
           @statuses = @statuses.sort { |y,x| x.send(sort_by) <=> y.send(sort_by) }
         end
-
+        
+        working_jobs = @statuses.select{|job| job.status == "working"}
+        if working_jobs.size >= 25
+          @statuses = working_jobs
+        else
+          @statuses = (@statuses.size >= 25) ? @statuses.take(25) : @statuses 
+        end
+        
         @headers = [
           { id: "worker", name: "Worker/jid", class: nil, url: nil},
           { id: "status", name: "Status", class: nil, url: nil},
