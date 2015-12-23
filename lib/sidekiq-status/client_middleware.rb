@@ -21,7 +21,7 @@ module Sidekiq::Status
         jid: msg['jid'],
         status: :queued,
         worker: worker_class, 
-        args: msg['args'].to_a.empty? ? nil : msg['args']
+        args: msg['args'].to_a.empty? ? nil : msg['args'].to_json
       }
       store_for_id msg['jid'], initial_metadata, @expiration, redis_pool
       yield
