@@ -147,7 +147,8 @@ Important: If you try any of the status method after the expiration time for sch
 
 ### Sidekiq web integration
 
-Sidekiq::Status also provides an extension to Sidekiq web interface with a `/statuses` [page](https://drive.google.com/file/d/0Bx956Uwn4a8wZlBxeVpMTlJZdkk/view?usp=sharing).
+Sidekiq::Status also provides an extension to Sidekiq web interface with a `/statuses`.
+![Sidekiq Status Web](https://raw.github.com/utgarda/sidekiq-status/master/web/sidekiq-status-web.png)
 
 Setup Sidekiq web interface according to Sidekiq documentation and add the Sidekiq::Status::Web require:
 
