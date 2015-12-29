@@ -16,16 +16,23 @@
 .header{
   text-align: center;
 }
+.header_update_time{
+  width: 10%;
+}
+.header_pct_complete{
+  width: 45%;
+}
+
 </style>
 
 <h3 class="wi">Recent job statuses</h3>
 <table class="table table-hover table-bordered table-striped table-white">  
   <tr>
-    <th class="header">Worker/jid</th>
-    <th class="header">Arguments</th>
-    <th class="header">Status</th>
-    <th class="header" style="width: 10%;">Last Updated</th>
-    <th class="header" style="width: 45%;">Progress</th>
+    <% @headers.each do |h| %>
+      <th class="header <%= h[:class] %> header_<%= h[:id] %>">
+        <a href="<%= h[:url] %>"><%= h[:name] %></a>
+      </th>
+    <% end %>
   </tr>
   <% @statuses.each do |container| %>
     <tr>
