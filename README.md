@@ -194,4 +194,4 @@ To use `sidekiq-status` inlining, require it too in your `{test,spec}_helper.rb`
 
 ## License
 MIT License , see LICENSE for more details.
-© 2012 - 2015 Evgeniy Tsvigun
+© 2012 - 2016 Evgeniy Tsvigun
