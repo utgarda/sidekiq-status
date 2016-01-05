@@ -177,9 +177,16 @@ To use `sidekiq-status` inlining, require it too in your `{test,spec}_helper.rb`
 
 `require 'sidekiq-status/testing/inline'`
 
+## Contributing
 
-### Features coming
-* Stopping jobs by id
+Bug reports and pull requests are welcome. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](contributor-covenant.org) code of conduct.
+
+1. Fork it
+2. Create your feature branch (`git checkout -b my-new-feature`)
+3. Commit your changes along with test cases (`git commit -am 'Add some feature'`)
+4. If possible squash your commits to one commit if they all belong to same feature.
+5. Push to the branch (`git push origin my-new-feature`)
+6. Create new Pull Request.
 
 ## Thanks
 * Pramod Shinde
