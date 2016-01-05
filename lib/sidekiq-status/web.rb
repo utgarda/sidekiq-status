@@ -22,7 +22,7 @@ module Sidekiq::Status
 
         def pct_complete(status)
           return 100 if status['status'] == 'complete'
-          Sidekiq::Status::pct_complete(status['jid'])
+          Sidekiq::Status::pct_complete(status['jid']) || 0
         end
 
         def status_label(status)
@@ -64,20 +64,22 @@ module Sidekiq::Status
           sort_dir = "desc"
           @statuses = @statuses.sort { |y,x| x.send(sort_by) <=> y.send(sort_by) }
         end
-        
+
         working_jobs = @statuses.select{|job| job.status == "working"}
-        if working_jobs.size >= 25
-          @statuses = working_jobs
+        size = params[:size] ? params[:size].to_i : 25
+        if working_jobs.size >= size
+         @statuses = working_jobs
         else
-          @statuses = (@statuses.size >= 25) ? @statuses.take(25) : @statuses 
+         @statuses = (@statuses.size >= size) ? @statuses.take(size) : @statuses
         end
-        
+
+
         @headers = [
           { id: "worker", name: "Worker/jid", class: nil, url: nil},
+          { id: "args", name: "Arguments", class: nil, url: nil},
           { id: "status", name: "Status", class: nil, url: nil},
           { id: "update_time", name: "Last Updated", class: nil, url: nil},
           { id: "pct_complete", name: "Progress", class: nil, url: nil},
-          { id: "message", name: "Message", class: nil, url: nil}
         ]
 
         @headers.each do |h|
