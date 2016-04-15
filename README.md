@@ -25,18 +25,18 @@ require 'sidekiq-status'
 
 Sidekiq.configure_client do |config|
   config.client_middleware do |chain|
-    # accepts :expiration (optional)
+    # accepts :expiration (optional), :all_jobs (optional, defaults true)
     chain.add Sidekiq::Status::ClientMiddleware, expiration: 30.minutes # default
   end
 end
 
 Sidekiq.configure_server do |config|
   config.server_middleware do |chain|
-    # accepts :expiration (optional)
+    # accepts :expiration (optional), :all_jobs (optional, defaults true)
     chain.add Sidekiq::Status::ServerMiddleware, expiration: 30.minutes # default
   end
   config.client_middleware do |chain|
-    # accepts :expiration (optional)
+    # accepts :expiration (optional), :all_jobs (optional, defaults true)
     chain.add Sidekiq::Status::ClientMiddleware, expiration: 30.minutes # default
   end
 end
@@ -50,6 +50,32 @@ class MyJob
 
   def perform(*args)
   # your code goes here
+  end
+end
+```
+
+As a default, status will be tracked for all Sidekiq jobs even those without the `Sidekiq::Status::Worker` module included in your worker class. 
+To override this behavior and track status only for Sidekiq workers including the `Sidekiq::Status::Worker` module you can initialize the Sidekiq::Status middleware using the all_jobs: parameter like this below:
+
+``` ruby
+require 'sidekiq'
+require 'sidekiq-status'
+
+Sidekiq.configure_client do |config|
+  config.client_middleware do |chain|
+    # accepts :expiration (optional), :all_jobs (optional and defaults true)
+    chain.add Sidekiq::Status::ClientMiddleware, all_jobs: false
+  end
+end
+
+Sidekiq.configure_server do |config|
+  config.server_middleware do |chain|
+    # accepts :expiration (optional), :all_jobs (optional and defaults true)
+    chain.add Sidekiq::Status::ServerMiddleware, all_jobs: false
+  end
+  config.client_middleware do |chain|
+    # accepts :expiration (optional), :all_jobs (optional and defaults true)
+    chain.add Sidekiq::Status::ClientMiddleware, all_jobs: false
   end
 end
 ```
@@ -95,7 +121,8 @@ Sidekiq::Status::failed?      job_id
 Sidekiq::Status::interrupted? job_id
 
 ```
-Important: If you try any of the above status method after the expiration time, will result into `nil` or `false` 
+
+Important: If you try any of the above status methods after the expiration time OR if you try to obtain status for job that is not being tracked (see :all_jobs initialization above) it will result in `nil` or `false`
 
 ### Tracking progress, saving, and retrieving data associated with job
 

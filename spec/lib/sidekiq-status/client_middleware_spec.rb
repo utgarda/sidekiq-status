@@ -52,4 +52,35 @@ describe Sidekiq::Status::ClientMiddleware do
       expect((Sidekiq::Status::DEFAULT_EXPIRY+1)..huge_expiration).to cover redis.ttl("sidekiq:status:#{job_id}")
     end
   end
+
+  describe ":all_jobs parameter" do
+    let!(:ordinary_job_id) { SecureRandom.hex(12) }
+    let!(:status_job_id) { SecureRandom.hex(12) }
+
+    it "should accept all jobs as true and track status for all jobs" do
+      client_middleware(all_jobs: true)
+      allow(SecureRandom).to receive(:hex).and_return(ordinary_job_id, status_job_id)
+
+      expect(OrdinaryJob.perform_async(:arg1 => 'val1')).to eq(ordinary_job_id)
+      expect(redis.hget("sidekiq:status:#{ordinary_job_id}", :status)).to eq('queued')
+      expect(Sidekiq::Status::queued?(ordinary_job_id)).to be_truthy
+
+      expect(StubJob.perform_async(:arg1 => 'val1')).to eq(status_job_id)
+      expect(redis.hget("sidekiq:status:#{status_job_id}", :status)).to eq('queued')
+      expect(Sidekiq::Status::queued?(status_job_id)).to be_truthy
+    end
+
+    it "should accept all jobs as false and only track status of Sidekiq::Status::Worker" do
+      client_middleware(all_jobs: false)
+      allow(SecureRandom).to receive(:hex).and_return(ordinary_job_id, status_job_id)
+
+      expect(OrdinaryJob.perform_async(:arg1 => 'val1')).to eq(ordinary_job_id)
+      expect(redis.hget("sidekiq:status:#{ordinary_job_id}", :status)).to be_nil
+      expect(Sidekiq::Status::queued?(ordinary_job_id)).to be_falsey
+
+      expect(StubJob.perform_async(:arg1 => 'val1')).to eq(status_job_id)
+      expect(redis.hget("sidekiq:status:#{status_job_id}", :status)).to eq('queued')
+      expect(Sidekiq::Status::queued?(status_job_id)).to be_truthy
+    end
+  end
 end
