@@ -1,6 +1,6 @@
 require "rspec"
 
-require 'celluloid/current'
+require 'celluloid'
 require 'sidekiq'
 require 'sidekiq/processor'
 require 'sidekiq/manager'
