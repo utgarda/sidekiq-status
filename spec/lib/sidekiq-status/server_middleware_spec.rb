@@ -79,7 +79,7 @@ describe Sidekiq::Status::ServerMiddleware do
       start_server(:expiration => huge_expiration) do
         StubJob.perform_async(:arg1 => 'val1')
       end
-      expect((Sidekiq::Status::DEFAULT_EXPIRY+1)..huge_expiration).to cover redis.ttl("sidekiq:status:#{job_id}")
+      expect((Sidekiq::Status::DEFAULT_EXPIRY-1)..huge_expiration).to cover redis.ttl("sidekiq:status:#{job_id}")
     end
 
     it "can be overwritten by worker expiration method" do
