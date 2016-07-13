@@ -10,7 +10,18 @@ by [resque-status](http://github.com/quirkey/resque-status) and mostly copying i
 
 ## Installation
 
-gem install sidekiq-status
+Add this line to your application's Gemfile:
+
+```ruby
+gem 'sidekiq-status'
+```
+And then execute:
+
+    $ bundle
+
+Or install it yourself as:
+
+    gem install sidekiq-status
 
 ## Usage
 
