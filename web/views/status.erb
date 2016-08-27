@@ -1,0 +1,75 @@
+<style>
+  .progress {
+    background-color: #C8E1ED;
+  }
+  .progress-percentage {
+    margin: 5px;
+    padding-left: 4px;
+    color: #333;
+    text-align: left;
+    text-shadow: 0 0 5px white;
+    font-weight: bold;
+    font-size: 14px;
+  }
+</style>
+
+<h3>
+  Job Status: <%= @status.jid %>
+  <span class='label label-<%= @status.label %>'>
+    <%= @status.status %>
+  </span>
+</h3>
+
+<div class="progress" style="height: 30px;">
+  <div class="progress-bar" role="progressbar" aria-valuenow="<%= @status.pct_complete.to_i %>" aria-valuemin="0" aria-valuemax="100" style="width: <%= @status.pct_complete.to_i %>%">
+    <div class="progress-percentage">
+      <%= @status.pct_complete.to_i %>%
+    </div>
+  </div>
+</div>
+
+<div class="panel panel-default">
+  <div class="panel-body">
+    <h4><%= @status.worker %></h4>
+
+    <div class="row">
+      <div class="col-sm-2">
+        <strong>Arguments</strong>
+      </div>
+      <div class="col-sm-10">
+        <p><%= @status.args.empty? ? "<i>none</i>" : @status.args %></p>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-sm-2">
+        <strong>Message</strong>
+      </div>
+      <div class="col-sm-10">
+        <p><%= @status.message || "<i>none</i>" %></p>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-sm-2">
+        <strong>Last Updated</strong>
+      </div>
+      <div class="col-sm-10">
+        <p>
+          <% secs = Time.now.to_i - @status.update_time.to_i %>
+          <% if secs > 0 %>
+            <%= secs %> sec<%= secs == 1 ? '' : 's' %> ago
+          <% else %>
+            Now
+          <% end %>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<a href="<%= url(:statuses) %>">
+  <small>&larr; back to all statuses</small>
+</a>
+
+
