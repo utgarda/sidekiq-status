@@ -18,10 +18,10 @@ module Sidekiq::Status
     # @param [String] queue the queue's name
     # @param [ConnectionPool] redis_pool optional redis connection pool
     def call(worker_class, msg, queue, redis_pool=nil)
-      initial_metadata = { 
+      initial_metadata = {
         jid: msg['jid'],
         status: :queued,
-        worker: worker_class, 
+        worker: worker_class,
         args: display_args(msg, queue)
       }
       store_for_id msg['jid'], initial_metadata, @expiration, redis_pool

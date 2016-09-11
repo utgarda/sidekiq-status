@@ -4,6 +4,7 @@ require 'sidekiq-status/worker'
 require 'sidekiq-status/client_middleware'
 require 'sidekiq-status/server_middleware'
 require 'sidekiq-status/web' if defined?(Sidekiq::Web)
+require 'chronic_duration'
 
 module Sidekiq::Status
   extend Storage
