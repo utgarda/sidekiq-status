@@ -4,8 +4,8 @@
   background-color: #C8E1ED;
 }
 .bar {
-  background-color: #2897cb; 
-  color: white; 
+  background-color: #2897cb;
+  color: white;
   text-shadow: 0 0 0;
 }
 .message {
@@ -26,7 +26,7 @@
 </style>
 
 <h3 class="wi">Recent job statuses</h3>
-<table class="table table-hover table-bordered table-striped table-white">  
+<table class="table table-hover table-bordered table-striped table-white">
   <tr>
     <% @headers.each do |h| %>
       <th class="header <%= h[:class] %> header_<%= h[:id] %>">
@@ -46,9 +46,9 @@
         <div class='label label-<%= container.label %>'><%= container.status %></div>
       </td>
       <% secs = Time.now.to_i - container.update_time.to_i %>
-      <td style='text-align: center;'>
+      <td style='text-align: center; white-space: nowrap;' title="<%= Time.at(container.update_time.to_i) %>">
         <% if secs > 0 %>
-          <%= secs %> sec<%= secs == 1 ? '' : 's' %> ago
+          <%= ChronicDuration.output(secs, :weeks => true, :units => 2) %> ago
         <% else %>
           Now
         <% end %>
