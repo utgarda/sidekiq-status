@@ -13,13 +13,16 @@
   font-weight: bold; padding-left: 4px;
   color: #333;
 }
-.header{
+.remove {
   text-align: center;
 }
-.header_update_time{
+.header {
+  text-align: center;
+}
+.header_update_time {
   width: 10%;
 }
-.header_pct_complete{
+.header_pct_complete {
   width: 45%;
 }
 
@@ -33,6 +36,9 @@
         <a href="<%= h[:url] %>"><%= h[:name] %></a>
       </th>
     <% end %>
+    <th class="header">
+      Remove
+    </th>
   </tr>
   <% @statuses.each do |container| %>
     <tr>
@@ -65,11 +71,21 @@
           <% end %>
         </div>
       </td>
+      <td>
+        <div class="remove">
+          <form action="statuses" method="post">
+            <input type="hidden" name="jid" value="<%= container.jid %>" />
+            <input type="hidden" name="_method" value="delete" />
+            <%= csrf_tag %>
+            <input type="submit" class="btn btn-danger btn-xs" value="Remove" />
+          </form>
+        </div>
+      </td>
     </tr>
   <% end %>
   <% if @statuses.empty? %>
     <tr>
-      <td colspan="6"></td>
+      <td colspan="7"></td>
     </tr>
   <% end %>
 </table>
