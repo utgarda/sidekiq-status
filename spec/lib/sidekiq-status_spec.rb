@@ -82,6 +82,23 @@ describe Sidekiq::Status do
     end
   end
 
+  describe '.delete' do
+    it 'deletes the status hash for given job id' do
+      allow(SecureRandom).to receive(:hex).once.and_return(job_id)
+      start_server do
+        expect(capture_status_updates(2) {
+          expect(LongJob.perform_async(1)).to eq(job_id)
+        }).to eq([job_id]*2)
+      end
+      expect(Sidekiq::Status.delete(job_id)).to eq(1)
+    end
+
+    it 'should not raise error while deleting status hash if invalid job id' do
+      allow(SecureRandom).to receive(:hex).once.and_return(job_id)
+      expect(Sidekiq::Status.delete(job_id)).to eq(0)
+    end
+  end
+
   describe ".cancel" do
     it "cancels a job by id" do
       allow(SecureRandom).to receive(:hex).twice.and_return(job_id, job_id_1)

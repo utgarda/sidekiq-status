@@ -52,6 +52,15 @@ module Sidekiq::Status::Storage
     false
   end
 
+  # Deletes status hash info for given job id
+  # @param[String] job id
+  # @retrun [Integer] number of keys that were removed
+  def delete_status(id)
+    redis_connection do |conn|
+      conn.del(key(id))
+    end
+  end
+
   # Gets a single valued from job status hash
   # @param [String] id job id
   # @param [String] Symbol field fetched field name
