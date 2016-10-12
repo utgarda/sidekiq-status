@@ -156,6 +156,13 @@ Sidekiq::Status.unschedule '' #=> false
 ```
 Important: If you try any of the status method after the expiration time for scheduled jobs, will result into `nil` or `false`. But job will be in sidekiq's scheduled queue and will execute normally, once job is started on scheduled time you will get status info for job till expiration time defined on `Sidekiq::Status::ServerMiddleware`.
 
+### Deleting Status by Job ID
+```ruby
+# returns number of keys/jobs that were removed
+Sidekiq::Status.delete(job_id) #=> 1
+Sidekiq::Status.delete(bad_job_id) #=> 0
+```
+
 ### Sidekiq web integration
 
 Sidekiq::Status also provides an extension to Sidekiq web interface with a `/statuses`.
@@ -212,4 +219,4 @@ Bug reports and pull requests are welcome. This project is intended to be a safe
 
 ## License
 MIT License , see LICENSE for more details.
-© 2012 - 2015 Evgeniy Tsvigun
+© 2012 - 2016 Evgeniy Tsvigun

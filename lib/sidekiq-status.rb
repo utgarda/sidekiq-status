@@ -22,8 +22,8 @@ module Sidekiq::Status
     # Get all status fields for a job
     # @params [String] id job id returned by async_perform
     # @return [Hash] hash of all fields stored for the job
-    def get_all(id)
-      read_hash_for_id(id)
+    def get_all(job_id)
+      read_hash_for_id(job_id)
     end
 
     def status(job_id)
@@ -33,6 +33,10 @@ module Sidekiq::Status
 
     def cancel(job_id, job_unix_time = nil)
       delete_and_unschedule(job_id, job_unix_time)
+    end
+
+    def delete(job_id)
+      delete_status(job_id)
     end
 
     alias_method :unschedule, :cancel
