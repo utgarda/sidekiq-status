@@ -23,7 +23,7 @@ module Sidekiq::Status
     # @params [String] id job id returned by async_perform
     # @return [Hash] hash of all fields stored for the job
     def get_all(job_id)
-      read_hash_for_id(job_id)
+      read_hash_for_id(job_id).merge(jid: job_id
     end
 
     def status(job_id)
