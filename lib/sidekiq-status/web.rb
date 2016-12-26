@@ -104,7 +104,7 @@ module Sidekiq::Status
         Sidekiq.redis do |conn|
           conn.del "sidekiq:status:#{params[:jid]}"
         end
-        redirect "./statuses"
+        redirect request.referer
       end
     end
   end
