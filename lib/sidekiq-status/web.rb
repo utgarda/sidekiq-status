@@ -58,7 +58,7 @@ module Sidekiq::Status
           max_items = @max_items
         end
 
-        jids[0..max_items].each do |jid|
+        jids[0..max_items-1].each do |jid|
           status = Sidekiq::Status::get_all jid
           next if !status || status.count < 2
           status = add_details_to_status(status)
