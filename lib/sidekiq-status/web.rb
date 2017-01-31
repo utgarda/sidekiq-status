@@ -48,7 +48,17 @@ module Sidekiq::Status
         jids = namespace_jids.map{|id_namespace| id_namespace.split(':').last }
         @statuses = []
 
-        jids.each do |jid|
+        if params[:max_items] == 'all'
+          @max_items = 'all' if params[:max_items] == 'all'
+          max_items = jids.size if @max_items == 'all'
+        else
+          is_a_valid_max_item_param = %w(20 50 100).include?(params[:max_items])
+          @max_items = 20 unless is_a_valid_max_item_param
+          @max_items ||= params[:max_items].to_i
+          max_items = @max_items
+        end
+
+        jids[0..max_items].each do |jid|
           status = Sidekiq::Status::get_all jid
           next if !status || status.count < 2
           status = add_details_to_status(status)
