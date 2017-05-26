@@ -28,14 +28,14 @@ describe Sidekiq::Status::ClientMiddleware do
         redis_pool = double(:redis_pool)
         allow(redis_pool).to receive(:with)
         expect(Sidekiq).to_not receive(:redis)
-        Sidekiq::Status::ClientMiddleware.new.call(StubJob, {'jid' => SecureRandom.hex}, :queued, redis_pool) do end
+        Sidekiq::Status::ClientMiddleware.new.call("StubJob", {'jid' => SecureRandom.hex}, :queued, redis_pool) do end
       end
     end
 
     context "when redis_pool is not passed" do
       it "uses Sidekiq.redis" do
         allow(Sidekiq).to receive(:redis)
-        Sidekiq::Status::ClientMiddleware.new.call(StubJob, {'jid' => SecureRandom.hex}, :queued) do end
+        Sidekiq::Status::ClientMiddleware.new.call("StubJob", {'jid' => SecureRandom.hex}, :queued) do end
       end
     end
   end
@@ -50,6 +50,24 @@ describe Sidekiq::Status::ClientMiddleware do
       client_middleware(expiration: huge_expiration)
       StubJob.perform_async(:arg1 => 'val1')
       expect((Sidekiq::Status::DEFAULT_EXPIRY+1)..huge_expiration).to cover redis.ttl("sidekiq:status:#{job_id}")
+    end
+  end
+
+  describe ":all_jobs parameter" do
+    it "saves status to Redis when worker includes Sidekiq::Status::Worker" do
+      jid = StubJob.perform_async(:arg1 => 'val1')
+      expect(redis.type("sidekiq:status:#{jid}")).to eq("hash")
+    end
+
+    it "saves status to Redis for ordinary jobs by default" do
+      jid = NoStatusConfirmationJob.perform_async(:arg1 => 'val1')
+      expect(redis.type("sidekiq:status:#{jid}")).to eq("hash")
+    end
+
+    it "does NOT save status to Redis for ordinary jobs if the option is set" do
+      jid = SecureRandom.hex
+      described_class.new(all_jobs: false).call("NoStatusConfirmationJob", {'jid' => jid}, :queued) { }
+      expect(redis.type("sidekiq:status:#{jid}")).to eq("none")
     end
   end
 end

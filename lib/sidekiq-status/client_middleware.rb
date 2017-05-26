@@ -10,6 +10,7 @@ module Sidekiq::Status
     # @option opts [Fixnum] :expiration ttl for complete jobs
     def initialize(opts = {})
       @expiration = opts[:expiration]
+      @all_jobs = opts.fetch(:all_jobs, true)
     end
 
     # Uses msg['jid'] id and puts :queued status in the job's Redis hash
@@ -18,13 +19,16 @@ module Sidekiq::Status
     # @param [String] queue the queue's name
     # @param [ConnectionPool] redis_pool optional redis connection pool
     def call(worker_class, msg, queue, redis_pool=nil)
-      initial_metadata = {
-        jid: msg['jid'],
-        status: :queued,
-        worker: worker_class,
-        args: display_args(msg, queue)
-      }
-      store_for_id msg['jid'], initial_metadata, @expiration, redis_pool
+      if @all_jobs || Object.const_get(worker_class).ancestors.include?(Sidekiq::Status::Worker)
+        initial_metadata = {
+          jid: msg['jid'],
+          status: :queued,
+          worker: worker_class,
+          args: display_args(msg, queue)
+        }
+        store_for_id msg['jid'], initial_metadata, @expiration, redis_pool
+      end
+
       yield
     end
 
