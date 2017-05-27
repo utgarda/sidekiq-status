@@ -4,6 +4,7 @@ begin
   require 'celluloid/current'
 rescue LoadError
   # old celluloid - using old Gemfile
+  require 'celluloid'
 end
 
 require 'sidekiq'
