@@ -19,7 +19,7 @@ module Sidekiq::Status
     # @param [String] queue the queue's name
     # @param [ConnectionPool] redis_pool optional redis connection pool
     def call(worker_class, msg, queue, redis_pool=nil)
-      if @all_jobs || Object.const_get(worker_class).ancestors.include?(Sidekiq::Status::Worker)
+      if @all_jobs || need_status?(worker_class)
         initial_metadata = {
           jid: msg['jid'],
           status: :queued,
@@ -32,12 +32,18 @@ module Sidekiq::Status
       yield
     end
 
+    private
+
     def display_args(msg, queue)
       job = Sidekiq::Job.new(msg, queue)
       return job.display_args.to_a.empty? ? nil : job.display_args.to_json
     rescue Exception => e
       # For Sidekiq ~> 2.7
       return msg['args'].to_a.empty? ? nil : msg['args'].to_json
+    end
+
+    def need_status?(worker_class)
+      Object.const_get(worker_class).ancestors.include?(Sidekiq::Status::Worker)
     end
   end
 end
