@@ -8,6 +8,15 @@ class StubJob
   end
 end
 
+class CollectionJob < StubJob
+  include Sidekiq::Status::AsCollection
+
+  def perform(*args)
+    sleep args[0] if args[0]
+  end
+
+end
+
 class LongJob < StubJob
   def perform(*args)
     sleep args[0] || 1

@@ -11,7 +11,7 @@ module Sidekiq::Status::Worker
   # @param [Hash] status_updates updated values
   # @return [String] Redis operation status code
   def store(hash)
-    store_for_id @jid, hash, @expiration
+    store_for_id @jid, hash, self.class.to_s, @expiration
   end
 
   # Read value from job status hash
@@ -37,5 +37,4 @@ module Sidekiq::Status::Worker
   def total(num)
     store(total: num)
   end
-
 end

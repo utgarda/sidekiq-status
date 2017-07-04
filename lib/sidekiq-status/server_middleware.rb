@@ -32,17 +32,18 @@ module Sidekiq::Status
           @expiration = worker.expiration
         end
       end
-
-      store_status worker.jid, :working,  @expiration
+      Sidekiq.logger.info 1
+      store_status worker.jid, :working, worker.class.to_s, @expiration
       yield
-      store_status worker.jid, :complete, @expiration
+      store_status worker.jid, :complete, worker.class.to_s, @expiration
+
     rescue Worker::Stopped
-      store_status worker.jid, :stopped, @expiration
+      store_status worker.jid, :stopped, worker.class.to_s, @expiration
     rescue SystemExit, Interrupt
-      store_status worker.jid, :interrupted, @expiration
+      store_status worker.jid, :interrupted, worker.class.to_s, @expiration
       raise
     rescue
-      store_status worker.jid, :failed,  @expiration
+      store_status worker.jid, :failed, worker.class.to_s, @expiration
       raise
     end
   end

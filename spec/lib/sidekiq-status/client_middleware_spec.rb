@@ -10,6 +10,7 @@ describe Sidekiq::Status::ClientMiddleware do
 
   describe "#call" do
     before { client_middleware }
+
     it "sets queued status" do
       allow(SecureRandom).to receive(:hex).once.and_return(job_id)
       expect(StubJob.perform_async(:arg1 => 'val1')).to eq(job_id)

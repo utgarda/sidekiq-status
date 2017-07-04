@@ -1,6 +1,7 @@
 require "sidekiq-status/version"
 require 'sidekiq-status/storage'
 require 'sidekiq-status/worker'
+require 'sidekiq-status/as_collection'
 require 'sidekiq-status/client_middleware'
 require 'sidekiq-status/server_middleware'
 require 'sidekiq-status/web' if defined?(Sidekiq::Web)
@@ -28,15 +29,15 @@ module Sidekiq::Status
 
     def status(job_id)
       status = get(job_id, :status)
-      status.to_sym  unless status.nil?
+      status.to_sym unless status.nil?
     end
 
-    def cancel(job_id, job_unix_time = nil)
-      delete_and_unschedule(job_id, job_unix_time)
+    def cancel(job_id, job_unix_time = nil, worker: nil)
+      delete_and_unschedule(job_id, job_unix_time, worker: worker)
     end
 
-    def delete(job_id)
-      delete_status(job_id)
+    def delete(id, worker: nil)
+      delete_status(id, worker: worker)
     end
 
     alias_method :unschedule, :cancel

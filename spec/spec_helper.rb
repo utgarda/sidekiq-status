@@ -9,7 +9,7 @@ require 'sidekiq-status'
 
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
 
-def client_middleware(client_middleware_options={}) 
+def client_middleware(client_middleware_options={})
   Sidekiq.configure_client do |config|
     config.client_middleware do |chain|
       chain.add Sidekiq::Status::ClientMiddleware, client_middleware_options
@@ -37,6 +37,7 @@ def confirmations_thread(messages_limit, *channels)
     end
     confirmations
   }
+
   Thread.stop
   yield if block_given?
   thread

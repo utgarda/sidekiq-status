@@ -24,7 +24,7 @@ module Sidekiq::Status
         worker: worker_class,
         args: display_args(msg, queue)
       }
-      store_for_id msg['jid'], initial_metadata, @expiration, redis_pool
+      store_for_id msg['jid'], initial_metadata, worker_class, @expiration, redis_pool
       yield
     end
 
