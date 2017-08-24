@@ -1,15 +1,20 @@
 require "rspec"
 
-require 'celluloid/current'
+begin
+  require 'celluloid/current'
+rescue LoadError
+  # old celluloid - using old Gemfile
+  require 'celluloid'
+end
+
 require 'sidekiq'
 require 'sidekiq/processor'
 require 'sidekiq/manager'
 require 'sidekiq-status'
 
-
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
 
-def client_middleware(client_middleware_options={}) 
+def client_middleware(client_middleware_options={})
   Sidekiq.configure_client do |config|
     config.client_middleware do |chain|
       chain.add Sidekiq::Status::ClientMiddleware, client_middleware_options
