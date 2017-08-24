@@ -1,18 +1,12 @@
 language: ruby
 rvm:
-  - 2.0
-  - 2.1
   - 2.2
   - 2.3
   - 2.4
-  - rbx-2
 gemfile:
-  - gemfiles/Gemfile.sidekiq-2
+  - gemfiles/Gemfile.sidekiq-4
   - Gemfile
 before_install:
   - gem update --system
   - gem update bundler
 services: redis
-matrix:
-  allow_failures:
-    - rvm: rbx-2
