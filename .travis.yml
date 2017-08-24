@@ -4,7 +4,6 @@ rvm:
   - 2.3
   - 2.4
 gemfile:
-  - gemfiles/Gemfile.sidekiq-4
   - Gemfile
 before_install:
   - gem update --system

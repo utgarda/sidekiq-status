@@ -1,11 +1,6 @@
 require "rspec"
 
-begin
-  require 'celluloid/current'
-rescue LoadError
-  # old celluloid - using old Gemfile
-  require 'celluloid'
-end
+require 'celluloid/current'
 
 require 'sidekiq'
 require 'sidekiq/processor'
