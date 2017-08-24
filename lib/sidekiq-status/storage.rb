@@ -1,6 +1,7 @@
 module Sidekiq::Status::Storage
-  RESERVED_FIELDS=%w(status stop update_time).freeze
+  RESERVED_FIELDS = %w(status stop update_time).freeze
   BATCH_LIMIT = 500
+  UPDATE_TIME = 'update_time'.freeze
 
   protected
 
@@ -11,12 +12,14 @@ module Sidekiq::Status::Storage
   # @param [Integer] expiration optional expire time in seconds
   # @param [ConnectionPool] redis_pool optional redis connection pool
   # @return [String] Redis operation status code
-  def store_for_id(id, status_updates, expiration = nil, redis_pool=nil)
+  def store_for_id(id, status_updates, worker_class, expiration = nil, redis_pool=nil)
+    namespaced_key = key(id)
     redis_connection(redis_pool) do |conn|
       conn.multi do
-        conn.hmset  key(id), 'update_time', Time.now.to_i, *(status_updates.to_a.flatten(1))
-        conn.expire key(id), (expiration || Sidekiq::Status::DEFAULT_EXPIRY)
-        conn.publish "status_updates", id
+        conn.hmset  namespaced_key, UPDATE_TIME, Time.now.to_i, *(status_updates.to_a.flatten(1))
+        conn.expire namespaced_key, (expiration || Sidekiq::Status::DEFAULT_EXPIRY)
+        conn.sadd("#{Sidekiq::Status::AsCollection::NAMESPACE}:#{worker_class.downcase}", namespaced_key)
+        conn.publish 'status_updates', id
       end[0]
     end
   end
@@ -28,14 +31,14 @@ module Sidekiq::Status::Storage
   # @param [Integer] expiration optional expire time in seconds
   # @param [ConnectionPool] redis_pool optional redis connection pool
   # @return [String] Redis operation status code
-  def store_status(id, status, expiration = nil, redis_pool=nil)
-    store_for_id id, {status: status}, expiration, redis_pool
+  def store_status(worker, status, expiration = nil, redis_pool=nil)
+    store_for_id worker, {status: status}, expiration, redis_pool
   end
 
   # Unschedules the job and deletes the Status
   # @param [String] id job id
   # @param [Num] job_unix_time, unix timestamp for the scheduled job
-  def delete_and_unschedule(job_id, job_unix_time = nil)
+  def delete_and_unschedule(job_id, job_unix_time = nil, worker: nil)
     Sidekiq.redis do |conn|
       scan_options = {offset: 0, conn: conn, start: (job_unix_time || '-inf'), end: (job_unix_time || '+inf')}
 
@@ -44,6 +47,7 @@ module Sidekiq::Status::Storage
         unless match.nil?
           conn.zrem "schedule", match
           conn.del key(job_id)
+          conn.srem(worker.keys_collection, [key(job_id)]) unless worker.nil?
           return true # Done
         end
         scan_options[:offset] += BATCH_LIMIT
@@ -55,8 +59,9 @@ module Sidekiq::Status::Storage
   # Deletes status hash info for given job id
   # @param[String] job id
   # @retrun [Integer] number of keys that were removed
-  def delete_status(id)
+  def delete_status(id, worker: nil)
     redis_connection do |conn|
+      conn.srem(worker.keys_collection, [key(id)]) unless worker.nil?
       conn.del(key(id))
     end
   end

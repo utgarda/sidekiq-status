@@ -42,6 +42,7 @@ def confirmations_thread(messages_limit, *channels)
     end
     confirmations
   }
+
   Thread.stop
   yield if block_given?
   thread

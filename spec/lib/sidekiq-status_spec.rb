@@ -12,7 +12,7 @@ describe Sidekiq::Status do
   # Clean Redis before each test
   # Seems like flushall has no effect on recently published messages,
   # so we should wait till they expire
-  before { redis.flushall; sleep 0.1 }
+  before { redis.flushall; sleep 0.1; client_middleware }
 
   describe ".status, .working?, .complete?" do
     it "gets job status by id as symbol" do
@@ -21,7 +21,7 @@ describe Sidekiq::Status do
       start_server do
         expect(capture_status_updates(2) {
           expect(LongJob.perform_async(1)).to eq(job_id)
-        }).to eq([job_id]*2)
+        }).to eq([job_id] * 2)
         expect(Sidekiq::Status.status(job_id)).to eq(:working)
         expect(Sidekiq::Status.working?(job_id)).to be_truthy
         expect(Sidekiq::Status::queued?(job_id)).to be_falsey
@@ -147,6 +147,7 @@ describe Sidekiq::Status do
     it "does jobs with and without included worker module" do
       seed_secure_random_with_job_ids
       run_2_jobs!
+
       expect_2_jobs_are_done_and_status_eq :complete
       expect_2_jobs_ttl_covers 1..Sidekiq::Status::DEFAULT_EXPIRY
     end

@@ -84,9 +84,9 @@ end
 But keep in mind that such thing will store details of job as long as expiration is set, so it may charm your Redis storage/memory consumption. Because Redis stores all data in RAM.
 
 ### What is expiration time ?
-As you noticed you can set expiration time for jobs globally by expiration option while adding middleware or writing a expiration method on each worker this expiration time is nothing but 
+As you noticed you can set expiration time for jobs globally by expiration option while adding middleware or writing a expiration method on each worker this expiration time is nothing but
 
-+ [Redis expire time](http://redis.io/commands/expire), also know as TTL(time to live) 
++ [Redis expire time](http://redis.io/commands/expire), also know as TTL(time to live)
 + After expiration time all the info like status, update_time etc. about the worker disappears.
 + It is advised to set this expiration time greater than time required for completion of the job.
 + Default expiration time is 30 minutes.
@@ -106,7 +106,7 @@ Sidekiq::Status::failed?      job_id
 Sidekiq::Status::interrupted? job_id
 
 ```
-Important: If you try any of the above status method after the expiration time, will result into `nil` or `false` 
+Important: If you try any of the above status method after the expiration time, will result into `nil` or `false`
 
 ### Tracking progress, saving, and retrieving data associated with job
 
@@ -148,7 +148,7 @@ Sidekiq::Status.cancel scheduled_job_id #=> true
 # doesn't cancel running jobs, this is more like unscheduling, therefore an alias:
 Sidekiq::Status.unschedule scheduled_job_id #=> true
 
-# returns false if invalid or wrong scheduled_job_id is provided 
+# returns false if invalid or wrong scheduled_job_id is provided
 Sidekiq::Status.unschedule some_other_unschedule_job_id #=> false
 Sidekiq::Status.unschedule nil #=> false
 Sidekiq::Status.unschedule '' #=> false
@@ -175,7 +175,49 @@ require 'sidekiq/web'
 require 'sidekiq-status/web'
 ```
 
+### AsCollection
 
+Sidekiq::Status::AsCollection provides interface to give sidekiq workers a collection methods.
+
+```ruby
+class MyJob
+  include Sidekiq::Worker
+  include Sidekiq::Status::AsCollection # Important!
+
+  def perform(*args)
+    # your code goes here
+  end
+end
+
+job_id1 = MyJob.perform_async(*args)
+job_id2 = MyJob.perform_async(*args)
+job_id3 = MyJob.perform_async(*args)
+
+MyJob.total #=> 3
+MyJob.all.to_a #=> [
+  { jid: job_id1, worker: 'MyJob', status: 'completed', args: '...' },
+  { jid: job_id2, worker: 'MyJob', status: 'working', args: '...' },
+  { jid: job_id3, worker: 'MyJob', status: 'queued', args: '...' }
+]
+```
+
+#### Methods
+The `Sidekiq::Status::AsCollection` module provides 3 next methods:
+
+1. `::all(page:, per_page:, order:, by:)` - it used to pick the collection of status like in example above. You can pass custom `page`, `per_page`, `order` and `by`. By default it uses the following values: `page: 1, per_page: 10, order: 'DESC', by: 'update_time'`
+2. `::total` - it used to get the total amount of keys in collection.
+3. `::refresh_collection` - in case when you start using this feature after implementing worker just run the following code to update job related keys.
+
+```ruby
+MyJob.refresh_collection
+```
+
+**NOTE** if you are gonna to cancel and delete jobs manualy via `Sidekiq::Status.delete` and `Sidekiq::Status.cancel` pass worker class to keep collection updated.
+
+```ruby
+Sidekiq::Status.delete(jid, worker: MyJob)
+Sidekiq::Status.cancel(jid, worker: MyJob)
+```
 ### Testing
 
 Drawing analogy from [sidekiq testing by inlining](https://github.com/mperham/sidekiq/wiki/Testing#testing-workers-inline),
