@@ -79,3 +79,12 @@ class RetriedJob < StubJob
     end
   end
 end
+
+class OrdinaryJob
+  include Sidekiq::Worker
+
+  sidekiq_options 'retry' => 'false'
+
+  def perform(*args)
+  end
+end
