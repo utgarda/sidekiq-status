@@ -52,7 +52,9 @@ def start_server(server_middleware_options={})
     $stderr.reopen File::NULL, 'w'
     require 'sidekiq/cli'
     Sidekiq.options[:queues] << 'default'
-    Sidekiq.options[:require] =  File.expand_path('../support/test_jobs.rb', __FILE__)
+    Sidekiq.options[:require] = File.expand_path('environment.rb', File.dirname(__FILE__))
+    Sidekiq.options[:timeout] = 2
+    Sidekiq.options[:concurrency] = 5
     Sidekiq.configure_server do |config|
       config.redis = Sidekiq::RedisConnection.create
       config.server_middleware do |chain|
@@ -65,7 +67,7 @@ def start_server(server_middleware_options={})
   yield
   sleep 0.1
   Process.kill 'TERM', pid
-  Timeout::timeout(10) { Process.wait pid } rescue Timeout::Error
+  Timeout::timeout(5) { Process.wait pid } rescue Timeout::Error
 ensure
   Process.kill 'KILL', pid rescue "OK" # it's OK if the process is gone already
 end

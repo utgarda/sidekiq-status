@@ -1,3 +1,5 @@
+require 'sidekiq-status'
+
 class StubJob
   include Sidekiq::Worker
   include Sidekiq::Status::Worker
