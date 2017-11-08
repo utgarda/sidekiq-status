@@ -58,11 +58,16 @@ module Sidekiq::Status
         sort_by = has_sort_by?(params[:sort_by]) ? params[:sort_by] : "update_time"
         sort_dir = "asc"
 
-        if params[:sort_dir] == "asc"
-          @statuses = @statuses.sort { |x,y| x.send(sort_by) <=> y.send(sort_by) }
-        else
-          sort_dir = "desc"
-          @statuses = @statuses.sort { |y,x| x.send(sort_by) <=> y.send(sort_by) }
+        begin
+          if params[:sort_dir] == "asc"
+            @statuses = @statuses.sort { |x,y| x.send(sort_by) <=> y.send(sort_by) }
+          else
+            sort_dir = "desc"
+            @statuses = @statuses.sort { |y,x| x.send(sort_by) <=> y.send(sort_by) }
+          end          
+        rescue Exception => e
+          #sort_by key must exists in every status object or #sort will crash, 
+          #so we just catch the exception to prevent UI errors
         end
 
         working_jobs = @statuses.select{|job| job.status == "working"}
