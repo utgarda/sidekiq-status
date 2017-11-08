@@ -6,7 +6,9 @@ describe Sidekiq::Status::ClientMiddleware do
   let!(:job_id) { SecureRandom.hex(12) }
 
   # Clean Redis before each test
-  before { redis.flushall }
+  # Seems like flushall has no effect on recently published messages,
+  # so we should wait till they expire
+  before { redis.flushall; sleep 0.1 }
 
   describe "#call" do
     before { client_middleware }

@@ -12,7 +12,7 @@ end
 
 class LongJob < StubJob
   def perform(*args)
-    sleep args[0] || 1
+    sleep args[0] || 0.25
   end
 end
 
