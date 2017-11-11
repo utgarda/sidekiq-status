@@ -1,9 +1,6 @@
 require "rspec"
 
-require 'celluloid/current'
-
 require 'sidekiq'
-require 'sidekiq/testing'
 require 'sidekiq/processor'
 require 'sidekiq/manager'
 require 'sidekiq-status'
@@ -11,7 +8,8 @@ require 'sidekiq-status'
 # Clears jobs before every test
 RSpec.configure do |config|
   config.before(:each) do
-    Sidekiq::Worker.clear_all
+    Sidekiq.redis { |conn| conn.flushall }
+    sleep 0.05
   end
 end
 
