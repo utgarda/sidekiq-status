@@ -96,8 +96,7 @@ module Sidekiq::Status
         job = Sidekiq::Status::get_all params['jid']
 
         if job.empty?
-          status 404
-          erb(sidekiq_status_template(:status_not_found))
+          halt [404, {"Content-Type" => "text/html"}, [erb(sidekiq_status_template(:status_not_found))]]
         else
           @status = OpenStruct.new(add_details_to_status(job))
           erb(sidekiq_status_template(:status))
