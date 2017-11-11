@@ -8,11 +8,6 @@ describe 'sidekiq status web' do
   let!(:redis) { Sidekiq.redis { |conn| conn } }
   let!(:job_id) { SecureRandom.hex(12) }
 
-  # Clean Redis before each test
-  # Seems like flushall has no effect on recently published messages,
-  # so we should wait till they expire
-  before { redis.flushall; sleep 0.1 }
-
   def app
     Sidekiq::Web
   end

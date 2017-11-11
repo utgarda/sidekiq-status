@@ -3,9 +3,17 @@ require "rspec"
 require 'celluloid/current'
 
 require 'sidekiq'
+require 'sidekiq/testing'
 require 'sidekiq/processor'
 require 'sidekiq/manager'
 require 'sidekiq-status'
+
+# Clears jobs before every test
+RSpec.configure do |config|
+  config.before(:each) do
+    Sidekiq::Worker.clear_all
+  end
+end
 
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
 

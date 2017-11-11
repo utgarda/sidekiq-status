@@ -9,11 +9,6 @@ describe Sidekiq::Status do
   let!(:plain_sidekiq_job_id) { SecureRandom.hex(12) }
   let!(:retried_job_id) { SecureRandom.hex(12) }
 
-  # Clean Redis before each test
-  # Seems like flushall has no effect on recently published messages,
-  # so we should wait till they expire
-  before { redis.flushall; sleep 0.1 }
-
   describe ".status, .working?, .complete?" do
     it "gets job status by id as symbol" do
       allow(SecureRandom).to receive(:hex).once.and_return(job_id)
