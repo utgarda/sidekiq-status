@@ -91,6 +91,18 @@ module Sidekiq::Status
 
         erb(sidekiq_status_template(:statuses))
       end
+
+      app.get '/statuses/:jid' do
+        job = Sidekiq::Status::get_all params['jid']
+
+        if job.empty?
+          status 404
+          erb(sidekiq_status_template(:status_not_found))
+        else
+          @status = OpenStruct.new(add_details_to_status(job))
+          erb(sidekiq_status_template(:status))
+        end
+      end
     end
   end
 end
