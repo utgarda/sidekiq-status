@@ -59,7 +59,7 @@ def start_server(server_middleware_options={})
     require 'sidekiq/cli'
     Sidekiq.options[:queues] << 'default'
     Sidekiq.options[:require] = File.expand_path('environment.rb', File.dirname(__FILE__))
-    Sidekiq.options[:timeout] = 2
+    Sidekiq.options[:timeout] = 1
     Sidekiq.options[:concurrency] = 5
     Sidekiq.configure_server do |config|
       config.redis = Sidekiq::RedisConnection.create
