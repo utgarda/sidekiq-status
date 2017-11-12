@@ -212,7 +212,7 @@ This gem provides an extension to Sidekiq's web interface with an index at `/sta
 
 ![Sidekiq Status Web](web/sidekiq-status-web.png)
 
-As of 0.7.0, status information for an individual job may be found at `/status/:job_id`.
+As of 0.7.0, status information for an individual job may be found at `/statuses/:job_id`.
 
 ![Sidekiq Status Web](web/sidekiq-status-single-web.png)
 
