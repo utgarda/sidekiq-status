@@ -1,7 +1,7 @@
 # Sidekiq::Status
-[![Gem Version](https://badge.fury.io/rb/sidekiq-status.png)](http://badge.fury.io/rb/sidekiq-status)
-[![Code Climate](https://codeclimate.com/github/utgarda/sidekiq-status.png)](https://codeclimate.com/github/utgarda/sidekiq-status)
-[![Build Status](https://secure.travis-ci.org/utgarda/sidekiq-status.png)](http://travis-ci.org/utgarda/sidekiq-status)
+[![Gem Version](https://badge.fury.io/rb/sidekiq-status.svg)](http://badge.fury.io/rb/sidekiq-status)
+[![Code Climate](https://codeclimate.com/github/utgarda/sidekiq-status.svg)](https://codeclimate.com/github/utgarda/sidekiq-status)
+[![Build Status](https://secure.travis-ci.org/utgarda/sidekiq-status.svg)](http://travis-ci.org/utgarda/sidekiq-status)
 [![Dependency Status](https://gemnasium.com/utgarda/sidekiq-status.svg)](https://gemnasium.com/utgarda/sidekiq-status)
 [![Inline docs](http://inch-ci.org/github/utgarda/sidekiq-status.svg?branch=master)](http://inch-ci.org/github/utgarda/sidekiq-status)
 
@@ -15,20 +15,30 @@ Add this line to your application's Gemfile:
 ```ruby
 gem 'sidekiq-status'
 ```
+
 And then execute:
 
-    $ bundle
+```bash
+$ bundle
+```
 
 Or install it yourself as:
 
-    gem install sidekiq-status
+```bash
+gem install sidekiq-status
+```
 
-## Usage
+## Setup Checklist
+
+To get started:
+
+ * [Configure](#configuration) the middleware
+ * (Optionally) add the [web interface](#adding-the-web-interface)
 
 ### Configuration
 
-Configure your middleware chains, lookup [Middleware usage](https://github.com/mperham/sidekiq/wiki/Middleware)
-on Sidekiq wiki for more info.
+To use, add sidekiq-status to the middleware chains. See [Middleware usage](https://github.com/mperham/sidekiq/wiki/Middleware)
+on the Sidekiq wiki for more info.
 
 ``` ruby
 require 'sidekiq'
@@ -53,7 +63,7 @@ Sidekiq.configure_server do |config|
 end
 ```
 
-After that you can use your jobs as usual and only include `Sidekiq::Status::Worker` module if you want additional functionality of tracking progress and passing any data from job to client.
+After that you can use your jobs as usual. You may also include the `Sidekiq::Status::Worker` module in your jobs if you want the additional functionality of tracking progress and storing / retrieving job data.
 
 ``` ruby
 class MyJob
@@ -65,14 +75,14 @@ class MyJob
 end
 ```
 
-To overwrite expiration on worker basis and don't use global expiration for all workers write a expiration method like this below:
+To overwrite expiration on a per-worker basis, write an expiration method like the one below:
 
 ``` ruby
 class MyJob
   include Sidekiq::Worker
 
   def expiration
-    @expiration ||= 60*60*24*30 # 30 days
+    @expiration ||= 60 * 60 * 24 * 30 # 30 days
   end
 
   def perform(*args)
@@ -81,19 +91,23 @@ class MyJob
 end
 ```
 
-But keep in mind that such thing will store details of job as long as expiration is set, so it may charm your Redis storage/memory consumption. Because Redis stores all data in RAM.
+The job status and any additional stored details will remain in Redis until the expiration time is reached. It is recommended that you find an expiration time that works best for your workload.
 
-### What is expiration time ?
-As you noticed you can set expiration time for jobs globally by expiration option while adding middleware or writing a expiration method on each worker this expiration time is nothing but 
+### Expiration Times
 
-+ [Redis expire time](http://redis.io/commands/expire), also know as TTL(time to live) 
-+ After expiration time all the info like status, update_time etc. about the worker disappears.
-+ It is advised to set this expiration time greater than time required for completion of the job.
-+ Default expiration time is 30 minutes.
+As sidekiq-status stores information about jobs in Redis, it is necessary to set an expiration time for the data that gets stored. A default expiration time may be configured at the time the middleware is loaded via the `:expiration` parameter.
 
-### Retrieving status
+As explained above, the default expiration may also be overridden on a per-job basis by defining it within the job itself via a method called `#expiration`.
 
-Query for job status any time later:
+The expiration time set will be used as the [Redis expire time](http://redis.io/commands/expire), which is also known as the TTL (time to live). Once the expiration time has passed, all information about the job's status and any custom data stored via sidekiq-status will disappear.
+
+It is advised that you set the expiration time greater than the amount of time required to complete the job.
+
+The default expiration time is 30 minutes.
+
+### Retrieving Status
+
+You may query for job status any time up to expiration:
 
 ``` ruby
 job_id = MyJob.perform_async(*args)
@@ -106,9 +120,11 @@ Sidekiq::Status::failed?      job_id
 Sidekiq::Status::interrupted? job_id
 
 ```
-Important: If you try any of the above status method after the expiration time, will result into `nil` or `false` 
+Important: If you try any of the above status method after the expiration time, the result will be `nil` or `false`.
 
-### Tracking progress, saving, and retrieving data associated with job
+### Tracking Progress and Storing Data
+
+sidekiq-status comes with a feature that allows you to track the progress of a job, as well as store and retrieve any custom data related to a job.
 
 ``` ruby
 class MyJob
@@ -120,12 +136,12 @@ class MyJob
 
     # the common idiom to track progress of your task
     total 100 # by default
-    at 5, "Almost done"
+    at 5, "Almost done" # 5/100 = 5 % completion
 
     # a way to associate data with your job
     store vino: 'veritas'
 
-    # a way of retrieving said data
+    # a way of retrieving stored data
     # remember that retrieved data is always String|nil
     vino = retrieve :vino
   end
@@ -140,6 +156,7 @@ Sidekiq::Status::total   job_id #=> 100
 Sidekiq::Status::message job_id #=> "Almost done"
 Sidekiq::Status::pct_complete job_id #=> 5
 ```
+
 ### Unscheduling
 
 ```ruby
@@ -148,34 +165,42 @@ Sidekiq::Status.cancel scheduled_job_id #=> true
 # doesn't cancel running jobs, this is more like unscheduling, therefore an alias:
 Sidekiq::Status.unschedule scheduled_job_id #=> true
 
-# returns false if invalid or wrong scheduled_job_id is provided 
+# returns false if invalid or wrong scheduled_job_id is provided
 Sidekiq::Status.unschedule some_other_unschedule_job_id #=> false
 Sidekiq::Status.unschedule nil #=> false
 Sidekiq::Status.unschedule '' #=> false
 # Note: cancel and unschedule are alias methods.
 ```
-Important: If you try any of the status method after the expiration time for scheduled jobs, will result into `nil` or `false`. But job will be in sidekiq's scheduled queue and will execute normally, once job is started on scheduled time you will get status info for job till expiration time defined on `Sidekiq::Status::ServerMiddleware`.
+Important: If you schedule a job and then try any of the status methods after the expiration time, the result will be either `nil` or `false`. The job itself will still be in Sidekiq's scheduled queue and will execute normally. Once the job is started at its scheduled time, sidekiq-status' job metadata will once again be added back to Redis and you will be able to get status info for the job until the expiration time.
 
-### Deleting Status by Job ID
+### Deleting Job Status by Job ID
+
+Job status and metadata will automatically be removed from Redis once the expiration time is reached. But if you would like to remove job information from Redis prior to the TTL expiration, `Sidekiq::Status#delete` will do just that. Note that this will also remove any metadata that was stored with the job.
+
 ```ruby
 # returns number of keys/jobs that were removed
 Sidekiq::Status.delete(job_id) #=> 1
 Sidekiq::Status.delete(bad_job_id) #=> 0
 ```
 
-### Sidekiq web integration
+### Sidekiq Web Integration
 
-Sidekiq::Status also provides an extension to Sidekiq web interface with an index at `/statuses` and a single job at `/statuses/123`.
+This gem provides an extension to Sidekiq's web interface with an index at `/statuses`.
+
 ![Sidekiq Status Web](web/sidekiq-status-web.png)
+
+As of 0.7.0, status information for an individual job may be found at `/status/:job_id`.
+
 ![Sidekiq Status Web](web/sidekiq-status-single-web.png)
 
-Setup Sidekiq web interface according to Sidekiq documentation and add the Sidekiq::Status::Web require:
+#### Adding the Web Interface
+
+To use, setup the Sidekiq Web interface according to Sidekiq documentation and add the `Sidekiq::Status::Web` require:
 
 ``` ruby
 require 'sidekiq/web'
 require 'sidekiq-status/web'
 ```
-
 
 ### Testing
 
@@ -219,5 +244,5 @@ Bug reports and pull requests are welcome. This project is intended to be a safe
 * Ben Sharpe
 
 ## License
-MIT License , see LICENSE for more details.
+MIT License, see LICENSE for more details.
 © 2012 - 2016 Evgeniy Tsvigun
