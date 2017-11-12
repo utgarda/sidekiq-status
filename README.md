@@ -8,6 +8,8 @@
 An extension to [Sidekiq](http://github.com/mperham/sidekiq) message processing to track your jobs. Inspired
 by [resque-status](http://github.com/quirkey/resque-status) and mostly copying its features, using Sidekiq's middleware.
 
+Fully compatible with ActiveJob.
+
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -34,6 +36,7 @@ To get started:
 
  * [Configure](#configuration) the middleware
  * (Optionally) add the [web interface](#adding-the-web-interface)
+ * (Optionally) enable support for [ActiveJob](#activejob-support)
 
 ### Configuration
 
@@ -122,9 +125,29 @@ Sidekiq::Status::interrupted? job_id
 ```
 Important: If you try any of the above status method after the expiration time, the result will be `nil` or `false`.
 
+### ActiveJob Support
+
+Version 0.7.0 has added full support for ActiveJob. The status of ActiveJob jobs will be tracked automatically.
+
+To also enable job progress tracking and data storage features, simply add the  `Sidekiq::Status::Worker` module to your base class, like below:
+
+```ruby
+# app/jobs/application_job.rb
+class ApplicationJob < ActiveJob::Base
+  include Sidekiq::Status::Worker
+end
+
+# app/jobs/my_job.rb
+class MyJob < ApplicationJob
+  def perform(*args)
+    # your code goes here
+  end
+end
+```
+
 ### Tracking Progress and Storing Data
 
-sidekiq-status comes with a feature that allows you to track the progress of a job, as well as store and retrieve any custom data related to a job.
+sidekiq-status comes with a feature that allows you to track the progress of a job, as well as store and retrieve any custom data related to a job. To use, just include the `Sidekiq::Status::Worker` module in your jobs.
 
 ``` ruby
 class MyJob
@@ -234,6 +257,7 @@ Bug reports and pull requests are welcome. This project is intended to be a safe
 
 ## Thanks
 * Pramod Shinde
+* Kenaniah Cerny
 * Clay Allsopp
 * Andrew Korzhuev
 * Jon Moses
