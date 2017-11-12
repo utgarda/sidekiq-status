@@ -165,8 +165,9 @@ Sidekiq::Status.delete(bad_job_id) #=> 0
 
 ### Sidekiq web integration
 
-Sidekiq::Status also provides an extension to Sidekiq web interface with a `/statuses`.
-![Sidekiq Status Web](https://raw.github.com/utgarda/sidekiq-status/master/web/sidekiq-status-web.png)
+Sidekiq::Status also provides an extension to Sidekiq web interface with an index at `/statuses` and a single job at `/statuses/123`.
+![Sidekiq Status Web](web/sidekiq-status-web.png)
+![Sidekiq Status Web](web/sidekiq-status-single-web.png)
 
 Setup Sidekiq web interface according to Sidekiq documentation and add the Sidekiq::Status::Web require:
 

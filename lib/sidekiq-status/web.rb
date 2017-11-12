@@ -100,11 +100,23 @@ module Sidekiq::Status
         erb(sidekiq_status_template(:statuses))
       end
 
+      app.get '/statuses/:jid' do
+        job = Sidekiq::Status::get_all params['jid']
+
+        if job.empty?
+          halt [404, {"Content-Type" => "text/html"}, [erb(sidekiq_status_template(:status_not_found))]]
+        else
+          @status = OpenStruct.new(add_details_to_status(job))
+          erb(sidekiq_status_template(:status))
+        end
+
+      end
+
       app.delete "/statuses" do
         Sidekiq.redis do |conn|
           conn.del "sidekiq:status:#{params[:jid]}"
         end
-        throw :halt, [302, { "Location" => request.referer }, []]
+        halt [302, { "Location" => request.referer }, []]
       end
     end
   end

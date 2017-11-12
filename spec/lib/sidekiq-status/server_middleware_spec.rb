@@ -5,11 +5,6 @@ describe Sidekiq::Status::ServerMiddleware do
   let!(:redis) { Sidekiq.redis { |conn| conn } }
   let!(:job_id) { SecureRandom.hex(12) }
 
-  # Clean Redis before each test
-  # Seems like flushall has no effect on recently published messages,
-  # so we should wait till they expire
-  before { redis.flushall; sleep 0.1 }
-
   describe "#call" do
     it "sets working/complete status" do
       thread = confirmations_thread 4, "status_updates", "job_messages_#{job_id}"
@@ -35,8 +30,8 @@ describe Sidekiq::Status::ServerMiddleware do
       expect(Sidekiq::Status::failed?(job_id)).to be_truthy
     end
 
-    context "sets interrupted status" do 
-      it "on system exit signal" do 
+    context "sets interrupted status" do
+      it "on system exit signal" do
         allow(SecureRandom).to receive(:hex).once.and_return(job_id)
         start_server do
           expect(capture_status_updates(3) {
@@ -47,7 +42,7 @@ describe Sidekiq::Status::ServerMiddleware do
         expect(Sidekiq::Status::interrupted?(job_id)).to be_truthy
       end
 
-      it "on interrupt signal" do 
+      it "on interrupt signal" do
         allow(SecureRandom).to receive(:hex).once.and_return(job_id)
         start_server do
           expect(capture_status_updates(3) {

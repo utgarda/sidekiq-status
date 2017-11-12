@@ -43,7 +43,7 @@
   <% @statuses.each do |container| %>
     <tr>
       <td>
-        <div title='<%= container.jid %>'><%= container.worker %></div>
+        <div title='<%= container.jid %>'><a href="<%= root_path %>statuses/<%= container.jid %>"><%= container.worker %></a></div>
       </td>
       <td>
         <div class='args' title='<%= container.jid %>'><%= container.args %></div>

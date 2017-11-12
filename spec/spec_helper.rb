@@ -1,11 +1,17 @@
 require "rspec"
 
-require 'celluloid/current'
-
 require 'sidekiq'
 require 'sidekiq/processor'
 require 'sidekiq/manager'
 require 'sidekiq-status'
+
+# Clears jobs before every test
+RSpec.configure do |config|
+  config.before(:each) do
+    Sidekiq.redis { |conn| conn.flushall }
+    sleep 0.05
+  end
+end
 
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
 
@@ -53,7 +59,7 @@ def start_server(server_middleware_options={})
     require 'sidekiq/cli'
     Sidekiq.options[:queues] << 'default'
     Sidekiq.options[:require] = File.expand_path('environment.rb', File.dirname(__FILE__))
-    Sidekiq.options[:timeout] = 2
+    Sidekiq.options[:timeout] = 1
     Sidekiq.options[:concurrency] = 5
     Sidekiq.configure_server do |config|
       config.redis = Sidekiq::RedisConnection.create
