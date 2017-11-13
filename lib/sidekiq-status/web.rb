@@ -6,6 +6,42 @@ module Sidekiq::Status
     # Location of Sidekiq::Status::Web view templates
     VIEW_PATH = File.expand_path('../../../web/views', __FILE__)
 
+    STATUS_PAGINATION_OPTIONS = [20, 50, 100].freeze
+
+    class << self
+      def number_of_items_options=(options = STATUS_PAGINATION_OPTIONS)
+        unless validate_pagination_options(options)
+          raise ArgumentError.new('status pagination options must be an Array of Integer values')
+        end
+        @number_of_items_options = options
+      end
+
+      def number_of_items_options
+        @number_of_items_options ||= STATUS_PAGINATION_OPTIONS
+      end
+
+      def default_max_items=(default_max_items = 20)
+        @default_max_items = default_max_items
+      end
+
+      def default_max_items
+        @default_max_items ||= 20
+      end
+
+      def validate_pagination_options(options)
+        result = true
+        return false unless options.is_a?(Array) && !options.empty?
+        options.each do |value|
+          result = false unless value.to_i.is_a?(Integer)
+        end
+        result
+      end
+
+      def validate_option(option)
+        number_of_items_options.include?(option)
+      end
+    end
+
     # @param [Sidekiq::Web] app
     def self.registered(app)
       app.helpers do
@@ -52,13 +88,14 @@ module Sidekiq::Status
           @max_items = 'all' if params[:max_items] == 'all'
           max_items = jids.size if @max_items == 'all'
         else
-          is_a_valid_max_item_param = %w(20 50 100).include?(params[:max_items])
-          @max_items = 20 unless is_a_valid_max_item_param
+          is_a_valid_max_item_param = Sidekiq::Status::Web.validate_option(params[:max_items])
+          @max_items = Sidekiq::Status::Web.default_max_items unless is_a_valid_max_item_param
           @max_items ||= params[:max_items].to_i
           max_items = @max_items
         end
 
-        jids[0..max_items-1].each do |jid|
+        (0..max_items-1).each do |idx|
+          jid = jids[idx]
           status = Sidekiq::Status::get_all jid
           next if !status || status.count < 2
           status = add_details_to_status(status)
