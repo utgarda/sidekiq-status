@@ -88,7 +88,7 @@ module Sidekiq::Status
           @max_items = 'all' if params[:max_items] == 'all'
           max_items = jids.size if @max_items == 'all'
         else
-          is_a_valid_max_item_param = Sidekiq::Status::Web.validate_option(params[:max_items])
+          is_a_valid_max_item_param = Sidekiq::Status::Web.validate_option(params[:max_items].to_i)
           @max_items = Sidekiq::Status::Web.default_max_items unless is_a_valid_max_item_param
           @max_items ||= params[:max_items].to_i
           max_items = @max_items
