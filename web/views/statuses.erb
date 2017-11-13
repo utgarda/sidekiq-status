@@ -36,7 +36,7 @@
   <ul class="list-unstyled">
   <% Sidekiq::Status::Web.number_of_items_options.each do |option| %>
     <li  data-items="20" class="col-sm-1">
-      <a href="<%=root_path %>statuses?max_items=<%= option %>" class="btn btn-sm <%=@max_items.eql?(option) ? 'btn-primary' : '' %>">
+      <a href="<%=root_path %>statuses?max_items=<%= option %>" class="btn btn-sm <%=@max_items.to_s.eql?(option.to_s) ? 'btn-primary' : '' %>">
         <span><%= option %></span>
       </a>
     </li>
