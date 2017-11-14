@@ -4,8 +4,14 @@ rvm:
   - 2.3
   - 2.4
 gemfile:
-  - Gemfile
+  - gemfiles/sidekiq_2.x.gemfile
+  - gemfiles/sidekiq_3.x.gemfile
+  - gemfiles/sidekiq_4.x.gemfile
+  - gemfiles/sidekiq_5.x.gemfile
 before_install:
   - gem update --system
   - gem update bundler
 services: redis
+matrix:
+  allow_failures:
+    - gemfile: gemfiles/sidekiq_2.x.gemfile
