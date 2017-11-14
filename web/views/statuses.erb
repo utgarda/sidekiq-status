@@ -16,6 +16,12 @@
 .header{
   text-align: center;
 }
+.max-items{
+  margin-bottom: 20px;
+}
+.max-items ul > li {
+  margin-right: 20px;
+}
 .header_update_time{
   width: 10%;
 }
@@ -26,6 +32,22 @@
 </style>
 
 <h3 class="wi">Recent job statuses</h3>
+<div class="max-items col-sm-3 col-sm-offset-9">
+  <ul class="list-unstyled">
+  <% Sidekiq::Status::Web.number_of_items_options.each do |option| %>
+    <li  data-items="20" class="col-sm-1">
+      <a href="<%=root_path %>statuses?max_items=<%= option %>" class="btn btn-sm <%=@max_items.to_s.eql?(option.to_s) ? 'btn-primary' : '' %>">
+        <span><%= option %></span>
+      </a>
+    </li>
+  <% end %>
+    <li data-items="all" class="col-sm-1">
+      <a href="<%=root_path %>statuses?max_items=all" class="btn btn-sm <%=@max_items.eql?('all') ? 'btn-primary' : '' %>">
+        <span>All</span>
+      </a>
+    </li>
+  </ul>
+</div>
 <table class="table table-hover table-bordered table-striped table-white">
   <tr>
     <% @headers.each do |h| %>
