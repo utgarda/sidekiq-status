@@ -10,6 +10,8 @@ by [resque-status](http://github.com/quirkey/resque-status) and mostly copying i
 
 Fully compatible with ActiveJob.
 
+Supports the latest versions of Sidekiq and all the way back to 3.x.
+
 ## Installation
 
 Add this line to your application's Gemfile:
