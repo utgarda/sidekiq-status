@@ -22,9 +22,7 @@ Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
 
 def client_middleware(client_middleware_options={})
   Sidekiq.configure_client do |config|
-    config.client_middleware do |chain|
-      chain.add Sidekiq::Status::ClientMiddleware, client_middleware_options
-    end
+    Sidekiq::Status.configure_client_middleware(config, client_middleware_options)
   end
 end
 
@@ -68,9 +66,7 @@ def start_server(server_middleware_options={})
     Sidekiq.options[:concurrency] = 5
     Sidekiq.configure_server do |config|
       config.redis = Sidekiq::RedisConnection.create
-      config.server_middleware do |chain|
-        chain.add Sidekiq::Status::ServerMiddleware, server_middleware_options
-      end
+      Sidekiq::Status.configure_server_middleware(config, server_middleware_options)
     end
     Sidekiq::CLI.instance.run
   end

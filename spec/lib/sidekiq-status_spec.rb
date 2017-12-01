@@ -20,6 +20,7 @@ describe Sidekiq::Status do
         expect(Sidekiq::Status.status(job_id)).to eq(:working)
         expect(Sidekiq::Status.working?(job_id)).to be_truthy
         expect(Sidekiq::Status::queued?(job_id)).to be_falsey
+        expect(Sidekiq::Status::retrying?(job_id)).to be_falsey
         expect(Sidekiq::Status::failed?(job_id)).to be_falsey
         expect(Sidekiq::Status::complete?(job_id)).to be_falsey
         expect(Sidekiq::Status::stopped?(job_id)).to be_falsey
@@ -149,11 +150,35 @@ describe Sidekiq::Status do
     it "retries failed jobs" do
       allow(SecureRandom).to receive(:hex).once.and_return(retried_job_id)
       start_server do
-        expect(capture_status_updates(5) {
+        expect(capture_status_updates(3) {
           expect(RetriedJob.perform_async()).to eq(retried_job_id)
-        }).to eq([retried_job_id] * 5)
+        }).to eq([retried_job_id] * 3)
+        expect(Sidekiq::Status.status(retried_job_id)).to eq(:retrying)
+        expect(Sidekiq::Status.working?(retried_job_id)).to be_falsey
+        expect(Sidekiq::Status::queued?(retried_job_id)).to be_falsey
+        expect(Sidekiq::Status::retrying?(retried_job_id)).to be_truthy
+        expect(Sidekiq::Status::failed?(retried_job_id)).to be_falsey
+        expect(Sidekiq::Status::complete?(retried_job_id)).to be_falsey
+        expect(Sidekiq::Status::stopped?(retried_job_id)).to be_falsey
+        expect(Sidekiq::Status::interrupted?(retried_job_id)).to be_falsey
+      end
+      expect(Sidekiq::Status.status(retried_job_id)).to eq(:retrying)
+      expect(Sidekiq::Status::retrying?(retried_job_id)).to be_truthy
+
+      # restarting and waiting for the job to complete
+      start_server do
+        expect(capture_status_updates(2) {}).to eq([retried_job_id] * 2)
+        expect(Sidekiq::Status.status(retried_job_id)).to eq(:working)
+        expect(Sidekiq::Status.working?(retried_job_id)).to be_truthy
+        expect(Sidekiq::Status::retrying?(retried_job_id)).to be_falsey
+
+        expect(capture_status_updates(1) {}).to eq([retried_job_id])
+        expect(Sidekiq::Status.status(retried_job_id)).to eq(:complete)
+        expect(Sidekiq::Status.complete?(retried_job_id)).to be_truthy
+        expect(Sidekiq::Status::retrying?(retried_job_id)).to be_falsey
       end
       expect(Sidekiq::Status.status(retried_job_id)).to eq(:complete)
+      expect(Sidekiq::Status::retrying?(retried_job_id)).to be_falsey
     end
 
     context ":expiration param" do

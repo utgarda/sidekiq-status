@@ -1,3 +1,8 @@
+Version 0.7.1
++ Catch/Manage non StandardError exceptions
++ Manage Sidekiq retries
+  + Change how the Sidekiq::Status middleware is inserted in the chain
+
 Version 0.7.0
 + Sidekiq 4.2 and 5 now supported
 + Added full support for ActiveJob

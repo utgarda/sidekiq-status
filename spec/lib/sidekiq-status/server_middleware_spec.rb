@@ -30,6 +30,17 @@ describe Sidekiq::Status::ServerMiddleware do
       expect(Sidekiq::Status::failed?(job_id)).to be_truthy
     end
 
+    it "sets failed status when Exception raised" do
+      allow(SecureRandom).to receive(:hex).once.and_return(job_id)
+      start_server do
+        expect(capture_status_updates(3) {
+          expect(FailingHardJob.perform_async).to eq(job_id)
+        }).to eq([job_id]*3)
+      end
+      expect(redis.hget("sidekiq:status:#{job_id}", :status)).to eq('failed')
+      expect(Sidekiq::Status::failed?(job_id)).to be_truthy
+    end
+
     context "sets interrupted status" do
       it "on system exit signal" do
         allow(SecureRandom).to receive(:hex).once.and_return(job_id)
