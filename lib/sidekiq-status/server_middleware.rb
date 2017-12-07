@@ -29,7 +29,7 @@ module Sidekiq::Status
       klass = msg["args"][0]["job_class"] || msg["class"] rescue msg["class"]
       job_class = klass.is_a?(Class) ? klass : Module.const_get(klass)
 
-      # Bypass uless this is a Sidekiq::Status::Worker job
+      # Bypass unless this is a Sidekiq::Status::Worker job
       unless job_class.ancestors.include?(Sidekiq::Status::Worker)
         yield
         return
