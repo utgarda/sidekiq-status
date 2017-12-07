@@ -185,12 +185,12 @@ describe Sidekiq::Status do
 
     def run_2_jobs!
       start_server(:expiration => expiration_param) do
-        expect(capture_status_updates(12) {
+        expect(capture_status_updates(6) {
           expect(StubJob.perform_async).to eq(plain_sidekiq_job_id)
           NoStatusConfirmationJob.perform_async(1)
           expect(StubJob.perform_async).to eq(job_id_1)
           NoStatusConfirmationJob.perform_async(2)
-        }).to match_array([plain_sidekiq_job_id, job_id_1] * 6)
+        }).to match_array([plain_sidekiq_job_id, job_id_1] * 3)
       end
     end
 
