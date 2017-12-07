@@ -21,7 +21,7 @@ module Sidekiq::Status
 
       # Determine the actual job class
       klass = msg["args"][0]["job_class"] || worker_class rescue worker_class
-      job_class = Module.const_get(klass)
+      job_class = klass.is_a?(Class) ? klass : Module.const_get(klass)
 
       # Store data if the job is a Sidekiq::Status::Worker
       if job_class.ancestors.include?(Sidekiq::Status::Worker)
