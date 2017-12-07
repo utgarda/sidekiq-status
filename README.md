@@ -68,11 +68,12 @@ Sidekiq.configure_server do |config|
 end
 ```
 
-After that you can use your jobs as usual. You may also include the `Sidekiq::Status::Worker` module in your jobs if you want the additional functionality of tracking progress and storing / retrieving job data.
+After that you can use your jobs as usual. You need to also include the `Sidekiq::Status::Worker` module in your jobs if you want the additional functionality of tracking progress and storing / retrieving job data.
 
 ``` ruby
 class MyJob
   include Sidekiq::Worker
+  include Sidekiq::Status::Worker # enables job status tracking
 
   def perform(*args)
   # your code goes here
@@ -80,11 +81,14 @@ class MyJob
 end
 ```
 
+As of version 0.8.0, _only jobs that include `Sidekiq::Status::Worker`_ will have their statuses tracked. Previous versions of this gem used to track statuses for all jobs, even when `Sidekiq::Status::Worker` was not included.
+
 To overwrite expiration on a per-worker basis, write an expiration method like the one below:
 
 ``` ruby
 class MyJob
   include Sidekiq::Worker
+  include Sidekiq::Status::Worker # enables job status tracking
 
   def expiration
     @expiration ||= 60 * 60 * 24 * 30 # 30 days
@@ -149,7 +153,7 @@ end
 
 ### Tracking Progress and Storing Data
 
-sidekiq-status comes with a feature that allows you to track the progress of a job, as well as store and retrieve any custom data related to a job. To use, just include the `Sidekiq::Status::Worker` module in your jobs.
+sidekiq-status comes with a feature that allows you to track the progress of a job, as well as store and retrieve any custom data related to a job.
 
 ``` ruby
 class MyJob
@@ -217,6 +221,8 @@ This gem provides an extension to Sidekiq's web interface with an index at `/sta
 As of 0.7.0, status information for an individual job may be found at `/statuses/:job_id`.
 
 ![Sidekiq Status Web](web/sidekiq-status-single-web.png)
+
+As of 0.8.0, only jobs that include `Sidekiq::Status::Worker` will be reported in the web interface.
 
 #### Adding the Web Interface
 
