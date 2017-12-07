@@ -37,7 +37,7 @@ module Sidekiq::Status
       end
 
       # Determine job expiration
-      expiry = job_class.new.expiration rescue @expiration
+      expiry = job_class.new.expiration || @expiration rescue @expiration
 
       store_status worker.jid, :working,  expiry
       yield

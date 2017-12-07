@@ -166,7 +166,7 @@ describe Sidekiq::Status do
         expect_2_jobs_ttl_covers (Sidekiq::Status::DEFAULT_EXPIRY+1)..expiration_param
       end
 
-      it "allow to overwrite :expiration parameter by .expiration method from worker" do
+      it "allow to overwrite :expiration parameter by #expiration method from worker" do
         overwritten_expiration = expiration_param * 100
         allow_any_instance_of(NoStatusConfirmationJob).to receive(:expiration).
           and_return(overwritten_expiration)
@@ -175,6 +175,16 @@ describe Sidekiq::Status do
         run_2_jobs!
         expect_2_jobs_are_done_and_status_eq :complete
         expect_2_jobs_ttl_covers (expiration_param+1)..overwritten_expiration
+      end
+
+      it "reads #expiration from a method when defined" do
+        allow(SecureRandom).to receive(:hex).once.and_return(job_id, job_id_1)
+        start_server do
+          expect(StubJob.perform_async).to eq(job_id)
+          expect(ExpiryJob.perform_async).to eq(job_id_1)
+          expect(redis.ttl("sidekiq:status:#{job_id}")).to eq(30 * 60)
+          expect(redis.ttl("sidekiq:status:#{job_id_1}")).to eq(15)
+        end
       end
     end
 
