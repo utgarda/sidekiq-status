@@ -23,7 +23,8 @@ module Sidekiq::Status
     # @param [String] queue queue name
     def call(worker, msg, queue)
 
-      expiry = nil
+      # Initial assignment to prevent SystemExit & co. from excepting
+      expiry = @expiration
 
       # Determine the actual job class
       klass = msg["args"][0]["job_class"] || msg["class"] rescue msg["class"]
@@ -36,18 +37,18 @@ module Sidekiq::Status
       end
 
       # Determine job expiration
-      expiry = job_class.new.expiration
+      expiry = job_class.new.expiration rescue @expiration
 
-      store_status worker.jid, :working,  expiry || @expiration
+      store_status worker.jid, :working,  expiry
       yield
-      store_status worker.jid, :complete, expiry || @expiration
+      store_status worker.jid, :complete, expiry
     rescue Worker::Stopped
-      store_status worker.jid, :stopped, expiry || @expiration
+      store_status worker.jid, :stopped, expiry
     rescue SystemExit, Interrupt
-      store_status worker.jid, :interrupted, expiry || @expiration
+      store_status worker.jid, :interrupted, expiry
       raise
     rescue
-      store_status worker.jid, :failed, expiry || @expiration
+      store_status worker.jid, :failed, expiry
       raise
     end
 
