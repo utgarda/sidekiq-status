@@ -22,28 +22,34 @@ module Sidekiq::Status
     # @param [Array] msg job args, should have jid format
     # @param [String] queue queue name
     def call(worker, msg, queue)
-      # a way of overriding default expiration time,
-      # so worker wouldn't lose its data
-      # and it allows also to overwrite global expiration time on worker basis
-      if worker.respond_to? :expiration
-        if !worker.expiration && worker.respond_to?(:expiration=)
-          worker.expiration = @expiration
-        else
-          @expiration = worker.expiration
-        end
+
+      expiry = nil
+
+      # Determine the actual job class
+      klass = msg["args"][0]["job_class"] || msg["class"] rescue msg["class"]
+      job_class = Module.const_get(klass)
+
+      # Bypass uless this is a Sidekiq::Status::Worker job
+      unless job_class.ancestors.include?(Sidekiq::Status::Worker)
+        yield
+        return
       end
 
-      store_status worker.jid, :working,  @expiration
+      # Determine job expiration
+      expiry = job_class.new.expiration
+
+      store_status worker.jid, :working,  expiry || @expiration
       yield
-      store_status worker.jid, :complete, @expiration
+      store_status worker.jid, :complete, expiry || @expiration
     rescue Worker::Stopped
-      store_status worker.jid, :stopped, @expiration
+      store_status worker.jid, :stopped, expiry || @expiration
     rescue SystemExit, Interrupt
-      store_status worker.jid, :interrupted, @expiration
+      store_status worker.jid, :interrupted, expiry || @expiration
       raise
     rescue
-      store_status worker.jid, :failed,  @expiration
+      store_status worker.jid, :failed, expiry || @expiration
       raise
     end
+
   end
 end

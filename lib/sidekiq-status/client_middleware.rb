@@ -18,14 +18,24 @@ module Sidekiq::Status
     # @param [String] queue the queue's name
     # @param [ConnectionPool] redis_pool optional redis connection pool
     def call(worker_class, msg, queue, redis_pool=nil)
-      initial_metadata = {
-        jid: msg['jid'],
-        status: :queued,
-        worker: Sidekiq::Job.new(msg, queue).display_class,
-        args: display_args(msg, queue)
-      }
-      store_for_id msg['jid'], initial_metadata, @expiration, redis_pool
+
+      # Determine the actual job class
+      klass = msg["args"][0]["job_class"] || worker_class rescue worker_class
+      job_class = Module.const_get(klass)
+
+      # Store data if the job is a Sidekiq::Status::Worker
+      if job_class.ancestors.include?(Sidekiq::Status::Worker)
+        initial_metadata = {
+          jid: msg['jid'],
+          status: :queued,
+          worker: Sidekiq::Job.new(msg, queue).display_class,
+          args: display_args(msg, queue)
+        }
+        store_for_id msg['jid'], initial_metadata, job_class.new.expiration || @expiration, redis_pool
+      end
+
       yield
+
     end
 
     def display_args(msg, queue)
