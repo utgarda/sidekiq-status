@@ -13,13 +13,16 @@
   font-weight: bold; padding-left: 4px;
   color: #333;
 }
-.header{
+.actions {
   text-align: center;
 }
-.header_update_time{
+.header {
+  text-align: center;
+}
+.header_update_time {
   width: 10%;
 }
-.header_pct_complete{
+.header_pct_complete {
   width: 45%;
 }
 
@@ -33,6 +36,9 @@
         <a href="<%= h[:url] %>"><%= h[:name] %></a>
       </th>
     <% end %>
+    <th class="header">
+      Actions
+    </th>
   </tr>
   <% @statuses.each do |container| %>
     <tr>
@@ -63,6 +69,18 @@
               <%= container.pct_complete %>%
             </div>
           <% end %>
+        </div>
+      </td>
+      <td>
+        <div class="actions">
+          <form action="statuses" method="post">
+            <input type="hidden" name="jid" value="<%= container.jid %>" />
+            <%= csrf_tag %>
+            <% if container.status == "complete" %>
+              <input type="hidden" name="_method" value="delete" />
+              <input type="submit" class="btn btn-danger btn-xs" value="Remove" />
+            <% end %>
+          </form>
         </div>
       </td>
     </tr>
