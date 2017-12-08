@@ -111,6 +111,15 @@ module Sidekiq::Status
         end
       end
 
+      # Retries a failed job from the status list
+      app.put '/statuses' do
+        job = Sidekiq::RetrySet.new.find_job(params[:jid])
+        job ||= Sidekiq::DeadSet.new.find_job(params[:jid])
+        job.retry if job
+        halt [302, { "Location" => request.referer }, []]
+      end
+
+      # Removes a completed job from the status list
       app.delete '/statuses' do
         Sidekiq::Status.delete(params[:jid])
         halt [302, { "Location" => request.referer }, []]

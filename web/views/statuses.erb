@@ -25,7 +25,9 @@
 .header_pct_complete {
   width: 45%;
 }
-
+.btn-warning {
+  background-image: linear-gradient(#f0ad4e, #eea236)
+}
 </style>
 
 <h3 class="wi">Recent job statuses</h3>
@@ -79,6 +81,9 @@
             <% if container.status == "complete" %>
               <input type="hidden" name="_method" value="delete" />
               <input type="submit" class="btn btn-danger btn-xs" value="Remove" />
+            <% elsif container.status == "failed" %>
+              <input type="hidden" name="_method" value="put" />
+              <input type="submit" class="btn btn-warning btn-xs" value="Retry" />
             <% end %>
           </form>
         </div>
