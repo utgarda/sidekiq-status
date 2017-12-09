@@ -33,36 +33,31 @@ end
 def redis_thread messages_limit, *channels
 
   parent = Thread.current
-  puts "Launching messages thread".cyan
   thread = Thread.new {
-    puts "Running thread".cyan
     messages = []
     Sidekiq.redis do |conn|
-      puts "Subscribing to #{channels} for #{messages_limit.to_s.bold} messages".cyan
+      puts "Subscribing to #{channels} for #{messages_limit.to_s.bold} messages".cyan if ENV['DEBUG']
       conn.subscribe_with_timeout 30, *channels do |on|
         on.subscribe do |ch, subscriptions|
-          puts "Subscribed to #{ch}".cyan
+          puts "Subscribed to #{ch}".cyan if ENV['DEBUG']
           if subscriptions == channels.size
             sleep 0.1 while parent.status != "sleep"
             parent.run
           end
         end
         on.message do |ch, msg|
-          puts "Message received: #{ch} -> #{msg}".white
+          puts "Message received: #{ch} -> #{msg}".white if ENV['DEBUG']
           messages << msg
           conn.unsubscribe if messages.length >= messages_limit
         end
       end
     end
-    puts "Returing from thread".cyan
+    puts "Returing from thread".cyan if ENV['DEBUG']
     messages
   }
 
-  puts "Delegating to redis thread".blue
   Thread.stop
-  puts "Preparing to yield to client code".blue
   yield if block_given?
-  puts "Returning the redis thread".blue
   thread
 
 end
@@ -78,8 +73,8 @@ def start_server server_middleware_options = {}
   pid = Process.fork do
 
     # Redirect the server's outputs
-    #$stdout.reopen File::NULL, 'w'
-    #$stderr.reopen File::NULL, 'w'
+    $stdout.reopen File::NULL, 'w' unless ENV['DEBUG']
+    $stderr.reopen File::NULL, 'w' unless ENV['DEBUG']
 
     # Load and configure server options
     require 'sidekiq/cli'
@@ -97,29 +92,21 @@ def start_server server_middleware_options = {}
     end
 
     # Launch
+    puts "Server starting".yellow if ENV['DEBUG']
     Sidekiq::CLI.instance.run
 
   end
 
-  # Ensures that the server will eventually be shut down at some point
-  #Timeout::timeout 5 do
+  # Run the client-side code
+  yield
 
-    puts "Server started".yellow
-    # Run the client-side code now that server has been launched
-    yield
-
-    # Attempt to shut down the server normally
-    puts "TERM #{pid}".yellow
-    Process.kill 'TERM', pid
-    puts "Waiting on #{pid}".yellow
-    Process.wait pid
-
-  #end rescue Timeout::Error
+  # Attempt to shut down the server normally
+  Process.kill 'TERM', pid
+  Process.wait pid
 
 ensure
 
   # Ensure the server is actually dead
-  puts "KILL #{pid}".yellow
   Process.kill 'KILL', pid rescue "OK" # it's OK if the process is gone already
 
 end

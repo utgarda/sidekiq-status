@@ -149,9 +149,9 @@ describe Sidekiq::Status do
     it "retries failed jobs" do
       allow(SecureRandom).to receive(:hex).once.and_return(retried_job_id)
       start_server do
-        expect(capture_status_updates(5) {
+        expect(capture_status_updates(6) {
           expect(RetriedJob.perform_async()).to eq(retried_job_id)
-        }).to eq([retried_job_id] * 5)
+        }).to eq([retried_job_id] * 6)
       end
       expect(Sidekiq::Status.status(retried_job_id)).to eq(:complete)
     end
