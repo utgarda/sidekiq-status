@@ -2,21 +2,25 @@ require 'spec_helper'
 
 describe Sidekiq::Status::ClientMiddleware do
 
-  let!(:redis) { Sidekiq.redis { |conn| conn } }
-  let!(:job_id) { SecureRandom.hex(12) }
+  let! :redis { Sidekiq.redis { |conn| conn } }
+  let! :job_id { SecureRandom.hex(12) }
 
-  describe "#call" do
-    before { client_middleware }
-    it "sets queued status" do
+  describe "without :expiration parameter" do
+
+    # Ensure client middleware is loaded for all tests in this block
+    before do
+      client_middleware
       allow(SecureRandom).to receive(:hex).once.and_return(job_id)
-      expect(StubJob.perform_async(:arg1 => 'val1')).to eq(job_id)
+    end
+
+    it "sets queued status" do
+      expect(StubJob.perform_async arg1: 'val1').to eq(job_id)
       expect(redis.hget("sidekiq:status:#{job_id}", :status)).to eq('queued')
       expect(Sidekiq::Status::queued?(job_id)).to be_truthy
     end
 
     it "sets status hash ttl" do
-      allow(SecureRandom).to receive(:hex).once.and_return(job_id)
-      expect(StubJob.perform_async(:arg1 => 'val1')).to eq(job_id)
+      expect(StubJob.perform_async arg1: 'val1').to eq(job_id)
       expect(1..Sidekiq::Status::DEFAULT_EXPIRY).to cover redis.ttl("sidekiq:status:#{job_id}")
     end
 
@@ -35,18 +39,23 @@ describe Sidekiq::Status::ClientMiddleware do
         Sidekiq::Status::ClientMiddleware.new.call(StubJob, {'jid' => SecureRandom.hex}, :queued) do end
       end
     end
+
   end
 
-  describe ":expiration parameter" do
-    let(:huge_expiration) { Sidekiq::Status::DEFAULT_EXPIRY * 100 }
+  describe "with :expiration parameter" do
+
+    let :huge_expiration { Sidekiq::Status::DEFAULT_EXPIRY * 100 }
+
+    # Ensure client middleware is loaded with an expiration parameter set
     before do
+      client_middleware expiration: huge_expiration
       allow(SecureRandom).to receive(:hex).once.and_return(job_id)
     end
 
     it "overwrites default expiry value" do
-      client_middleware(expiration: huge_expiration)
-      StubJob.perform_async(:arg1 => 'val1')
+      StubJob.perform_async arg1: 'val1'
       expect((Sidekiq::Status::DEFAULT_EXPIRY+1)..huge_expiration).to cover redis.ttl("sidekiq:status:#{job_id}")
     end
+
   end
 end
