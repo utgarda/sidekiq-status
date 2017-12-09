@@ -5,13 +5,11 @@ describe Sidekiq::Status::ClientMiddleware do
   let! :redis { Sidekiq.redis { |conn| conn } }
   let! :job_id { SecureRandom.hex(12) }
 
-  describe "without :expiration parameter" do
+  before do
+    allow(SecureRandom).to receive(:hex).once.and_return(job_id)
+  end
 
-    # Ensure client middleware is loaded for all tests in this block
-    before do
-      client_middleware
-      allow(SecureRandom).to receive(:hex).once.and_return(job_id)
-    end
+  describe "without :expiration parameter" do
 
     it "sets queued status" do
       expect(StubJob.perform_async arg1: 'val1').to eq(job_id)
@@ -49,7 +47,6 @@ describe Sidekiq::Status::ClientMiddleware do
     # Ensure client middleware is loaded with an expiration parameter set
     before do
       client_middleware expiration: huge_expiration
-      allow(SecureRandom).to receive(:hex).once.and_return(job_id)
     end
 
     it "overwrites default expiry value" do
