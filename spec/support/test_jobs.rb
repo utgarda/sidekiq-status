@@ -81,17 +81,13 @@ class InterruptedJob < StubJob
 end
 
 class RetriedJob < StubJob
-  sidekiq_options 'retry' => true
 
-  # do not wait too long for second perform
-  sidekiq_retry_in do |count|
-    count + 1
-  end
+  sidekiq_options 'retry' => true
+  sidekiq_retry_in do |count| 1 end # Wait 1 second between retries
 
   def perform()
     Sidekiq.redis do |conn|
       key = "RetriedJob_#{jid}"
-      sleep 0.25
       unless conn.exists key
         conn.set key, 'tried'
         raise StandardError

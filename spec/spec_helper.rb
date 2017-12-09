@@ -1,5 +1,5 @@
 require "rspec"
-
+require 'colorize'
 require 'sidekiq'
 
 # Celluloid should only be manually required before Sidekiq versions 4.+
@@ -14,67 +14,98 @@ require 'sidekiq-status'
 RSpec.configure do |config|
   config.before(:each) do
     Sidekiq.redis { |conn| conn.flushall }
+    client_middleware
     sleep 0.05
   end
 end
 
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
 
-def client_middleware(client_middleware_options={})
+# Configures client middleware
+def client_middleware client_middleware_options = {}
   Sidekiq.configure_client do |config|
     Sidekiq::Status.configure_client_middleware(config, client_middleware_options)
   end
 end
 
-def confirmations_thread(messages_limit, *channels)
+def redis_thread messages_limit, *channels
+
   parent = Thread.current
   thread = Thread.new {
-    confirmations = []
+    messages = []
     Sidekiq.redis do |conn|
-      conn.subscribe *channels do |on|
+      puts "Subscribing to #{channels} for #{messages_limit.to_s.bold} messages".cyan if ENV['DEBUG']
+      conn.subscribe_with_timeout 30, *channels do |on|
         on.subscribe do |ch, subscriptions|
+          puts "Subscribed to #{ch}".cyan if ENV['DEBUG']
           if subscriptions == channels.size
             sleep 0.1 while parent.status != "sleep"
             parent.run
           end
         end
         on.message do |ch, msg|
-          confirmations << msg
-          conn.unsubscribe if confirmations.length >= messages_limit
+          puts "Message received: #{ch} -> #{msg}".white if ENV['DEBUG']
+          messages << msg
+          conn.unsubscribe if messages.length >= messages_limit
         end
       end
     end
-    confirmations
+    puts "Returing from thread".cyan if ENV['DEBUG']
+    messages
   }
+
   Thread.stop
   yield if block_given?
   thread
+
 end
 
-def capture_status_updates(n, &block)
-  confirmations_thread(n, "status_updates", &block).value
+def capture_status_updates n, &block
+  redis_thread(n, "status_updates", &block).value
 end
 
-def start_server(server_middleware_options={})
+# Configures server middleware and launches a sidekiq server
+def start_server server_middleware_options = {}
+
+  # Creates a process for the Sidekiq server
   pid = Process.fork do
-    $stdout.reopen File::NULL, 'w'
-    $stderr.reopen File::NULL, 'w'
+
+    # Redirect the server's outputs
+    $stdout.reopen File::NULL, 'w' unless ENV['DEBUG']
+    $stderr.reopen File::NULL, 'w' unless ENV['DEBUG']
+
+    # Load and configure server options
     require 'sidekiq/cli'
     Sidekiq.options[:queues] << 'default'
     Sidekiq.options[:require] = File.expand_path('environment.rb', File.dirname(__FILE__))
     Sidekiq.options[:timeout] = 1
     Sidekiq.options[:concurrency] = 5
+
+    # Add the server middleware
     Sidekiq.configure_server do |config|
       config.redis = Sidekiq::RedisConnection.create
       Sidekiq::Status.configure_server_middleware(config, server_middleware_options)
     end
+
+    # Launch
+    puts "Server starting".yellow if ENV['DEBUG']
     Sidekiq::CLI.instance.run
+
   end
 
+  # Run the client-side code
   yield
-  sleep 0.1
+
+  # Pause to ensure all jobs are picked up & started before TERM is sent
+  sleep 0.2
+
+  # Attempt to shut down the server normally
   Process.kill 'TERM', pid
-  Timeout::timeout(5) { Process.wait pid } rescue Timeout::Error
+  Process.wait pid
+
 ensure
+
+  # Ensure the server is actually dead
   Process.kill 'KILL', pid rescue "OK" # it's OK if the process is gone already
+
 end
