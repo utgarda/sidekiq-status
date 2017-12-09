@@ -100,6 +100,9 @@ def start_server server_middleware_options = {}
   # Run the client-side code
   yield
 
+  # Pause to ensure all jobs are picked up & started before TERM is sent
+  sleep 0.2
+
   # Attempt to shut down the server normally
   Process.kill 'TERM', pid
   Process.wait pid
