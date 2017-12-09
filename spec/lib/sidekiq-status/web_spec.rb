@@ -21,7 +21,7 @@ describe 'sidekiq status web' do
 
   it 'shows the list of jobs in progress' do
     capture_status_updates(2) do
-      expect(LongJob.perform_async(1)).to eq(job_id)
+      expect(LongJob.perform_async(0.5)).to eq(job_id)
     end
 
     get '/statuses'
