@@ -13,16 +13,21 @@
   font-weight: bold; padding-left: 4px;
   color: #333;
 }
-.header{
+.actions {
   text-align: center;
 }
-.header_update_time{
+.header {
+  text-align: center;
+}
+.header_update_time {
   width: 10%;
 }
-.header_pct_complete{
+.header_pct_complete {
   width: 45%;
 }
-
+.btn-warning {
+  background-image: linear-gradient(#f0ad4e, #eea236)
+}
 </style>
 
 <h3 class="wi">Recent job statuses</h3>
@@ -33,6 +38,9 @@
         <a href="<%= h[:url] %>"><%= h[:name] %></a>
       </th>
     <% end %>
+    <th class="header">
+      Actions
+    </th>
   </tr>
   <% @statuses.each do |container| %>
     <tr>
@@ -63,6 +71,21 @@
               <%= container.pct_complete %>%
             </div>
           <% end %>
+        </div>
+      </td>
+      <td>
+        <div class="actions">
+          <form action="statuses" method="post">
+            <input type="hidden" name="jid" value="<%= container.jid %>" />
+            <%= csrf_tag %>
+            <% if container.status == "complete" %>
+              <input type="hidden" name="_method" value="delete" />
+              <input type="submit" class="btn btn-danger btn-xs" value="Remove" />
+            <% elsif container.status == "failed" %>
+              <input type="hidden" name="_method" value="put" />
+              <input type="submit" class="btn btn-warning btn-xs" value="Retry Now" />
+            <% end %>
+          </form>
         </div>
       </td>
     </tr>

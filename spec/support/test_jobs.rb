@@ -10,6 +10,12 @@ class StubJob
   end
 end
 
+class ExpiryJob < StubJob
+  def expiration
+    15
+  end
+end
+
 class LongJob < StubJob
   def perform(*args)
     sleep args[0] || 0.25
@@ -85,7 +91,7 @@ class RetriedJob < StubJob
   def perform()
     Sidekiq.redis do |conn|
       key = "RetriedJob_#{jid}"
-      sleep 1
+      sleep 0.25
       unless conn.exists key
         conn.set key, 'tried'
         raise StandardError
