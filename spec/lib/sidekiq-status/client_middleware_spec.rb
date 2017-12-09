@@ -2,8 +2,8 @@ require 'spec_helper'
 
 describe Sidekiq::Status::ClientMiddleware do
 
-  let! :redis { Sidekiq.redis { |conn| conn } }
-  let! :job_id { SecureRandom.hex(12) }
+  let!(:redis) { Sidekiq.redis { |conn| conn } }
+  let!(:job_id) { SecureRandom.hex(12) }
 
   before do
     allow(SecureRandom).to receive(:hex).once.and_return(job_id)

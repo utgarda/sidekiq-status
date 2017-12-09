@@ -2,8 +2,8 @@ require 'spec_helper'
 
 describe Sidekiq::Status::ServerMiddleware do
 
-  let! :redis { Sidekiq.redis { |conn| conn } }
-  let! :job_id { SecureRandom.hex(12) }
+  let!(:redis) { Sidekiq.redis { |conn| conn } }
+  let!(:job_id) { SecureRandom.hex(12) }
 
   describe "without :expiration parameter" do
     it "sets working/complete status" do
