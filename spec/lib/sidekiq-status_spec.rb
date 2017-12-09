@@ -49,9 +49,9 @@ describe Sidekiq::Status do
       allow(SecureRandom).to receive(:hex).once.and_return(job_id)
 
       start_server do
-        expect(capture_status_updates(3) {
+        expect(capture_status_updates(4) {
           expect(ProgressJob.perform_async).to eq(job_id)
-        }).to eq([job_id]*3)
+        }).to eq([job_id]*4)
       end
       expect(Sidekiq::Status.at(job_id)).to be(100)
       expect(Sidekiq::Status.total(job_id)).to be(500)
