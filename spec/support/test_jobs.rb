@@ -76,10 +76,10 @@ end
 
 class RetriedJob < StubJob
   sidekiq_options 'retry' => 'true'
+  sidekiq_retry_in { |count| 1 } # 1 seconds
   def perform()
     Sidekiq.redis do |conn|
       key = "RetriedJob_#{jid}"
-      sleep 0.25
       unless conn.exists key
         conn.set key, 'tried'
         raise StandardError

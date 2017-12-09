@@ -15,7 +15,7 @@ describe Sidekiq::Status do
 
       start_server do
         expect(capture_status_updates(2) {
-          expect(LongJob.perform_async(1)).to eq(job_id)
+          expect(LongJob.perform_async(0.5)).to eq(job_id)
         }).to eq([job_id]*2)
         expect(Sidekiq::Status.status(job_id)).to eq(:working)
         expect(Sidekiq::Status.working?(job_id)).to be_truthy
@@ -67,7 +67,7 @@ describe Sidekiq::Status do
 
       start_server do
         expect(capture_status_updates(2) {
-          expect(LongJob.perform_async(1)).to eq(job_id)
+          expect(LongJob.perform_async(0.5)).to eq(job_id)
         }).to eq([job_id]*2)
         expect(hash = Sidekiq::Status.get_all(job_id)).to include 'status' => 'working'
         expect(hash).to include 'update_time'
@@ -82,7 +82,7 @@ describe Sidekiq::Status do
       allow(SecureRandom).to receive(:hex).once.and_return(job_id)
       start_server do
         expect(capture_status_updates(2) {
-          expect(LongJob.perform_async(1)).to eq(job_id)
+          expect(LongJob.perform_async(0.5)).to eq(job_id)
         }).to eq([job_id]*2)
       end
       expect(Sidekiq::Status.delete(job_id)).to eq(1)
