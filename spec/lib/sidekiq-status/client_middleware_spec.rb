@@ -42,7 +42,7 @@ describe Sidekiq::Status::ClientMiddleware do
 
   describe "with :expiration parameter" do
 
-    let :huge_expiration { Sidekiq::Status::DEFAULT_EXPIRY * 100 }
+    let(:huge_expiration) { Sidekiq::Status::DEFAULT_EXPIRY * 100 }
 
     # Ensure client middleware is loaded with an expiration parameter set
     before do
