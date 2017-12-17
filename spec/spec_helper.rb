@@ -24,7 +24,7 @@ Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
 # Configures client middleware
 def client_middleware client_middleware_options = {}
   Sidekiq.configure_client do |config|
-    Sidekiq::Status.configure_client_middleware(config, client_middleware_options)
+    Sidekiq::Status.configure_client_middleware config, client_middleware_options
   end
 end
 
@@ -77,14 +77,14 @@ def start_server server_middleware_options = {}
     # Load and configure server options
     require 'sidekiq/cli'
     Sidekiq.options[:queues] << 'default'
-    Sidekiq.options[:require] = File.expand_path('environment.rb', File.dirname(__FILE__))
+    Sidekiq.options[:require] = File.expand_path 'environment.rb', File.dirname(__FILE__)
     Sidekiq.options[:timeout] = 1
     Sidekiq.options[:concurrency] = 5
 
     # Add the server middleware
     Sidekiq.configure_server do |config|
       config.redis = Sidekiq::RedisConnection.create
-      Sidekiq::Status.configure_server_middleware(config, server_middleware_options)
+      Sidekiq::Status.configure_server_middleware config, server_middleware_options
     end
 
     # Launch
