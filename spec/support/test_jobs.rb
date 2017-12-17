@@ -83,7 +83,7 @@ end
 class RetriedJob < StubJob
 
   sidekiq_options 'retry' => true
-  sidekiq_retry_in do |count| 1 end # Wait 1 second between retries
+  sidekiq_retry_in do |count| 3 end # 3 second delay > job timeout in test suite
 
   def perform()
     Sidekiq.redis do |conn|
