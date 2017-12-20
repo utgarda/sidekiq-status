@@ -4,7 +4,7 @@ class StubJob
   include Sidekiq::Worker
   include Sidekiq::Status::Worker
 
-  sidekiq_options 'retry' => 'false'
+  sidekiq_options 'retry' => false
 
   def perform(*args)
   end
@@ -62,6 +62,12 @@ class FailingJob < StubJob
   end
 end
 
+class FailingHardJob < StubJob
+  def perform
+    raise Exception
+  end
+end
+
 class ExitedJob < StubJob
   def perform
     raise SystemExit
@@ -75,8 +81,10 @@ class InterruptedJob < StubJob
 end
 
 class RetriedJob < StubJob
-  sidekiq_options 'retry' => 'true'
-  sidekiq_retry_in { |count| 1 } # 1 seconds
+
+  sidekiq_options 'retry' => true
+  sidekiq_retry_in do |count| 3 end # 3 second delay > job timeout in test suite
+
   def perform()
     Sidekiq.redis do |conn|
       key = "RetriedJob_#{jid}"

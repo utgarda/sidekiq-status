@@ -1,4 +1,5 @@
-require "sidekiq-status/version"
+require 'sidekiq-status/version'
+require 'sidekiq-status/sidekiq_extensions'
 require 'sidekiq-status/storage'
 require 'sidekiq-status/worker'
 require 'sidekiq-status/client_middleware'
@@ -9,7 +10,7 @@ require 'chronic_duration'
 module Sidekiq::Status
   extend Storage
   DEFAULT_EXPIRY = 60 * 30
-  STATUS = [ :queued, :working, :complete, :stopped, :failed, :interrupted ].freeze
+  STATUS = [ :queued, :working, :retrying, :complete, :stopped, :failed, :interrupted ].freeze
 
   class << self
     # Job status by id

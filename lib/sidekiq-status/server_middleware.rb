@@ -1,6 +1,17 @@
+if Sidekiq.major_version < 5
+  require 'sidekiq/middleware/server/retry_jobs'
+else
+  require 'sidekiq/job_retry'
+end
+
 module Sidekiq::Status
-# Should be in the server middleware chain
+  # Should be in the server middleware chain
   class ServerMiddleware
+
+    DEFAULT_MAX_RETRY_ATTEMPTS = Sidekiq.major_version < 5 ?
+      Sidekiq::Middleware::Server::RetryJobs::DEFAULT_MAX_RETRY_ATTEMPTS :
+      Sidekiq::JobRetry::DEFAULT_MAX_RETRY_ATTEMPTS
+
     include Storage
 
     # Parameterized initialization, use it when adding middleware to server chain
@@ -47,9 +58,38 @@ module Sidekiq::Status
     rescue SystemExit, Interrupt
       store_status worker.jid, :interrupted, expiry
       raise
-    rescue
-      store_status worker.jid, :failed, expiry
+    rescue Exception
+      status = :failed
+      if msg['retry']
+        retry_count = msg['retry_count'] || 0
+        if retry_count < retry_attempts_from(msg['retry'], DEFAULT_MAX_RETRY_ATTEMPTS)
+          status = :retrying
+        end
+      end
+      store_status worker.jid, status, expiry
       raise
+    end
+
+    private
+
+    def retry_attempts_from(msg_retry, default)
+      msg_retry.is_a?(Integer) ? msg_retry : default
+    end
+  end
+
+  # Helper method to easily configure sidekiq-status server middleware
+  # whatever the Sidekiq version is.
+  # @param [Sidekiq] sidekiq_config the Sidekiq config
+  # @param [Hash] server_middleware_options server middleware initialization options
+  # @option server_middleware_options [Fixnum] :expiration ttl for complete jobs
+  def self.configure_server_middleware(sidekiq_config, server_middleware_options = {})
+    sidekiq_config.server_middleware do |chain|
+      if Sidekiq.major_version < 5
+        chain.insert_after Sidekiq::Middleware::Server::Logging,
+          Sidekiq::Status::ServerMiddleware, server_middleware_options
+      else
+        chain.add Sidekiq::Status::ServerMiddleware, server_middleware_options
+      end
     end
 
   end

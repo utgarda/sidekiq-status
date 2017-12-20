@@ -13,7 +13,7 @@ describe Sidekiq::Status::Worker do
 
   describe ".expiration" do
     subject { StubJob.new }
-    
+
     it "allows to set/get expiration" do
       expect(subject.expiration).to be_nil
       subject.expiration = :val

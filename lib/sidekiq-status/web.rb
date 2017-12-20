@@ -37,7 +37,7 @@ module Sidekiq::Status
           case status
           when 'complete'
             'success'
-          when 'working'
+          when 'working', 'retrying'
             'warning'
           when 'queued'
             'primary'
@@ -53,7 +53,7 @@ module Sidekiq::Status
 
       app.get '/statuses' do
         namespace_jids = Sidekiq.redis{ |conn| conn.keys('sidekiq:status:*') }
-        jids = namespace_jids.map{|id_namespace| id_namespace.split(':').last }
+        jids = namespace_jids.map{ |id_namespace| id_namespace.split(':').last }
         @statuses = []
 
         jids.each do |jid|
@@ -83,11 +83,11 @@ module Sidekiq::Status
 
 
         @headers = [
-          { id: "worker", name: "Worker / JID", class: nil, url: nil},
-          { id: "args", name: "Arguments", class: nil, url: nil},
-          { id: "status", name: "Status", class: nil, url: nil},
-          { id: "update_time", name: "Last Updated", class: nil, url: nil},
-          { id: "pct_complete", name: "Progress", class: nil, url: nil},
+          {id: "worker", name: "Worker / JID", class: nil, url: nil},
+          {id: "args", name: "Arguments", class: nil, url: nil},
+          {id: "status", name: "Status", class: nil, url: nil},
+          {id: "update_time", name: "Last Updated", class: nil, url: nil},
+          {id: "pct_complete", name: "Progress", class: nil, url: nil},
         ]
 
         @headers.each do |h|

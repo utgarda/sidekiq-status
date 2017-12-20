@@ -50,21 +50,16 @@ require 'sidekiq'
 require 'sidekiq-status'
 
 Sidekiq.configure_client do |config|
-  config.client_middleware do |chain|
-    # accepts :expiration (optional)
-    chain.add Sidekiq::Status::ClientMiddleware, expiration: 30.minutes # default
-  end
+  # accepts :expiration (optional)
+  Sidekiq::Status.configure_client_middleware config, expiration: 30.minutes
 end
 
 Sidekiq.configure_server do |config|
-  config.server_middleware do |chain|
-    # accepts :expiration (optional)
-    chain.add Sidekiq::Status::ServerMiddleware, expiration: 30.minutes # default
-  end
-  config.client_middleware do |chain|
-    # accepts :expiration (optional)
-    chain.add Sidekiq::Status::ClientMiddleware, expiration: 30.minutes # default
-  end
+  # accepts :expiration (optional)
+  Sidekiq::Status.configure_server_middleware config, expiration: 30.minutes
+
+  # accepts :expiration (optional)
+  Sidekiq::Status.configure_client_middleware config, expiration: 30.minutes
 end
 ```
 
@@ -124,6 +119,7 @@ job_id = MyJob.perform_async(*args)
 status = Sidekiq::Status::status(job_id)
 Sidekiq::Status::queued?      job_id
 Sidekiq::Status::working?     job_id
+Sidekiq::Status::retrying?    job_id
 Sidekiq::Status::complete?    job_id
 Sidekiq::Status::failed?      job_id
 Sidekiq::Status::interrupted? job_id
