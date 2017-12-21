@@ -63,6 +63,8 @@ Sidekiq.configure_server do |config|
 end
 ```
 
+**Note:** This method of configuration is new as of version 0.8.0.
+
 After that you can use your jobs as usual. You need to also include the `Sidekiq::Status::Worker` module in your jobs if you want the additional functionality of tracking progress and storing / retrieving job data.
 
 ``` ruby
