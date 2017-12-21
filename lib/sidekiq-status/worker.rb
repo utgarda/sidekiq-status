@@ -28,7 +28,7 @@ module Sidekiq::Status::Worker
   # @return [String]
   def at(num, message = nil)
     @_status_total = 100 if @_status_total.nil?
-    pct_complete = ((num / @_status_total.to_f) * 100).to_i
+    pct_complete = ((num / @_status_total.to_f) * 100).to_i rescue 0
     store(at: num, total: @_status_total, pct_complete: pct_complete, message: message)
   end
 
