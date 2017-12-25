@@ -6,6 +6,8 @@
 + Server middleware will now catches all exception types
 + Changes where server middleware is inserted in the chain
 + Reduces the amount of Redis calls made
++ Adds pagination
++ Restores column sorting functionality
 
 **Version 0.7.0**
 + Sidekiq 4.2 and 5 now supported
