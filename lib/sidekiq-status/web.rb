@@ -47,11 +47,12 @@ module Sidekiq::Status
         end
 
         def has_sort_by?(value)
-          ["worker", "status", "update_time", "pct_complete", "message"].include?(value)
+          ["worker", "status", "update_time", "pct_complete", "message", "args"].include?(value)
         end
       end
 
       app.get '/statuses' do
+
         namespace_jids = Sidekiq.redis{ |conn| conn.keys('sidekiq:status:*') }
         jids = namespace_jids.map{ |id_namespace| id_namespace.split(':').last }
         @statuses = []
@@ -60,27 +61,24 @@ module Sidekiq::Status
           status = Sidekiq::Status::get_all jid
           next if !status || status.count < 2
           status = add_details_to_status(status)
-          @statuses << OpenStruct.new(status)
+          @statuses << status
         end
 
         sort_by = has_sort_by?(params[:sort_by]) ? params[:sort_by] : "update_time"
         sort_dir = "asc"
 
         if params[:sort_dir] == "asc"
-          @statuses = @statuses.sort { |x,y| x.send(sort_by) <=> y.send(sort_by) }
+          @statuses = @statuses.sort { |x,y| (x[sort_by] <=> y[sort_by]) || -1 }
         else
           sort_dir = "desc"
-          @statuses = @statuses.sort { |y,x| x.send(sort_by) <=> y.send(sort_by) }
+          @statuses = @statuses.sort { |y,x| (x[sort_by] <=> y[sort_by]) || 1 }
         end
 
-        working_jobs = @statuses.select{|job| job.status == "working"}
-        size = params[:size] ? params[:size].to_i : 25
-        if working_jobs.size >= size
-         @statuses = working_jobs
-        else
-         @statuses = (@statuses.size >= size) ? @statuses.take(size) : @statuses
-        end
-
+        # Sidekiq pagination
+        @count = params[:size] ? params[:size].to_i : 25
+        @current_page = params[:page].to_i < 1 ? 1 : params[:page].to_i
+        @total_size = @statuses.count
+        @statuses = @statuses.slice((@current_page - 1) * @count, @count)
 
         @headers = [
           {id: "worker", name: "Worker / JID", class: nil, url: nil},
@@ -91,9 +89,7 @@ module Sidekiq::Status
         ]
 
         @headers.each do |h|
-          params["sort_by"] = h[:id]
-          params["sort_dir"] = (sort_by == h[:id] && sort_dir == "asc") ? "desc" : "asc"
-          h[:url] = "statuses?" + params.map {|k,v| "#{k}=#{v}" }.join("&")
+          h[:url] = "statuses?" + params.merge("sort_by" => h[:id], "sort_dir" => (sort_by == h[:id] && sort_dir == "asc") ? "desc" : "asc").map{|k, v| "#{k}=#{CGI.escape v.to_s}"}.join("&")
           h[:class] = "sorted_#{sort_dir}" if sort_by == h[:id]
         end
 
@@ -106,7 +102,7 @@ module Sidekiq::Status
         if job.empty?
           halt [404, {"Content-Type" => "text/html"}, [erb(sidekiq_status_template(:status_not_found))]]
         else
-          @status = OpenStruct.new(add_details_to_status(job))
+          @status = add_details_to_status(job)
           erb(sidekiq_status_template(:status))
         end
       end
@@ -130,6 +126,8 @@ end
 
 require 'sidekiq/web' unless defined?(Sidekiq::Web)
 Sidekiq::Web.register(Sidekiq::Status::Web)
+Sidekiq::WebHelpers::SAFE_QPARAMS.push("sort_by")
+Sidekiq::WebHelpers::SAFE_QPARAMS.push("sort_dir")
 if Sidekiq::Web.tabs.is_a?(Array)
   # For sidekiq < 2.5
   Sidekiq::Web.tabs << "statuses"
