@@ -3,6 +3,7 @@ rvm:
   - 2.2
   - 2.3
   - 2.4
+  - 2.5
 gemfile:
   - gemfiles/sidekiq_3.x.gemfile
   - gemfiles/sidekiq_4.x.gemfile
