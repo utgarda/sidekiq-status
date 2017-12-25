@@ -14,30 +14,30 @@
 </style>
 
 <h3>
-  Job Status: <%= @status.jid %>
-  <span class='label label-<%= @status.label %>'>
-    <%= @status.status %>
+  Job Status: <%= @status["jid"] %>
+  <span class='label label-<%= @status["label"] %>'>
+    <%= @status["status"] %>
   </span>
 </h3>
 
 <div class="progress" style="height: 30px;">
-  <div class="progress-bar" role="progressbar" aria-valuenow="<%= @status.pct_complete.to_i %>" aria-valuemin="0" aria-valuemax="100" style="width: <%= @status.pct_complete.to_i %>%">
+  <div class="progress-bar" role="progressbar" aria-valuenow="<%= @status["pct_complete"].to_i %>" aria-valuemin="0" aria-valuemax="100" style="width: <%= @status["pct_complete"].to_i %>%">
     <div class="progress-percentage">
-      <%= @status.pct_complete.to_i %>%
+      <%= @status["pct_complete"].to_i %>%
     </div>
   </div>
 </div>
 
 <div class="panel panel-default">
   <div class="panel-body">
-    <h4><%= @status.worker %></h4>
+    <h4><%= @status["worker"] %></h4>
 
     <div class="row">
       <div class="col-sm-2">
         <strong>Arguments</strong>
       </div>
       <div class="col-sm-10">
-        <p><%= @status.args.empty? ? "<i>none</i>" : @status.args %></p>
+        <p><%= @status["args"].empty? ? "<i>none</i>" : @status["args"] %></p>
       </div>
     </div>
 
@@ -46,7 +46,7 @@
         <strong>Message</strong>
       </div>
       <div class="col-sm-10">
-        <p><%= @status.message || "<i>none</i>" %></p>
+        <p><%= @status["message"] || "<i>none</i>" %></p>
       </div>
     </div>
 
@@ -56,9 +56,9 @@
       </div>
       <div class="col-sm-10">
         <p>
-          <% secs = Time.now.to_i - @status.update_time.to_i %>
+          <% secs = Time.now.to_i - @status["update_time"].to_i %>
           <% if secs > 0 %>
-            <%= secs %> sec<%= secs == 1 ? '' : 's' %> ago
+            <%= ChronicDuration.output(secs, :weeks => true, :units => 2) %> ago
           <% else %>
             Now
           <% end %>
