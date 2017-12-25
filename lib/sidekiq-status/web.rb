@@ -6,6 +6,24 @@ module Sidekiq::Status
     # Location of Sidekiq::Status::Web view templates
     VIEW_PATH = File.expand_path('../../../web/views', __FILE__)
 
+    DEFAULT_PER_PAGE_OPTS = [25, 50, 100].freeze
+    DEFAULT_PER_PAGE = 25
+
+    class << self
+      def per_page_opts= arr
+        @per_page_opts = arr
+      end
+      def per_page_opts
+        @per_page_opts || DEFAULT_PER_PAGE_OPTS
+      end
+      def default_per_page= val
+        @default_per_page = val
+      end
+      def default_per_page
+        @default_per_page || DEFAULT_PER_PAGE
+      end
+    end
+
     # @param [Sidekiq::Web] app
     def self.registered(app)
 
@@ -75,9 +93,10 @@ module Sidekiq::Status
         end
 
         # Sidekiq pagination
-        @count = params[:size] ? params[:size].to_i : 25
-        @current_page = params[:page].to_i < 1 ? 1 : params[:page].to_i
         @total_size = @statuses.count
+        @count = params[:per_page] ? params[:per_page].to_i : Sidekiq::Status::Web.default_per_page
+        @count = @total_size if params[:per_page] == 'all'
+        @current_page = params[:page].to_i < 1 ? 1 : params[:page].to_i
         @statuses = @statuses.slice((@current_page - 1) * @count, @count)
 
         @headers = [
@@ -126,8 +145,9 @@ end
 
 require 'sidekiq/web' unless defined?(Sidekiq::Web)
 Sidekiq::Web.register(Sidekiq::Status::Web)
-Sidekiq::WebHelpers::SAFE_QPARAMS.push("sort_by")
-Sidekiq::WebHelpers::SAFE_QPARAMS.push("sort_dir")
+["per_page", "sort_by", "sort_dir"].each do |key|
+  Sidekiq::WebHelpers::SAFE_QPARAMS.push(key)
+end
 if Sidekiq::Web.tabs.is_a?(Array)
   # For sidekiq < 2.5
   Sidekiq::Web.tabs << "statuses"
