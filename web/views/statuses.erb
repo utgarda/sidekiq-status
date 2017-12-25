@@ -48,18 +48,21 @@
   margin: 0 0 0 5px;
 }
 </style>
-
+<script>
+function setPerPage(select){
+  window.location = select.options[select.selectedIndex].getAttribute('data-url')
+}
+</script>
 <div style="display: flex; justify-content: space-between;">
   <h3 class="wi">Recent job statuses</h3>
   <div class="nav-container">
     <%= erb :_paging, locals: { url: "#{root_path}statuses" } %>
     <div class="per-page">
       Per page:
-      <select class="form-control">
-        <% Sidekiq::Status::Web.per_page_opts.each do |num| %>
-        <option value="<%= num %>"><%= num %></option>
+      <select class="form-control" onchange="setPerPage(this)">
+        <% (Sidekiq::Status::Web.per_page_opts + ['all']).each do |num| %>
+        <option data-url="?<%= qparams(page: 1, per_page: num)%>" value="<%= num %>" <%= 'selected="selected"' if num.to_s == (params[:per_page] || @count) %>><%= num %></option>
         <% end %>
-        <option value="all">all</option>
       </select>
     </div>
   </div>

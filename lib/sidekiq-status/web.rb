@@ -35,6 +35,10 @@ module Sidekiq::Status
           "<input type='hidden' name='authenticity_token' value='#{session[:csrf]}'/>"
         end
 
+        def poll_path
+          "?#{request.query_string}" if params[:poll]
+        end
+
         def sidekiq_status_template(name)
           path = File.join(VIEW_PATH, name.to_s) + ".erb"
           File.open(path).read
