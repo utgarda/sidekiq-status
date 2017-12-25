@@ -89,7 +89,7 @@ module Sidekiq::Status
         ]
 
         @headers.each do |h|
-          h[:url] = "statuses?" + params.merge("sort_by" => h[:id], "sort_dir" => (sort_by == h[:id] && sort_dir == "asc") ? "desc" : "asc").compact.map{|k, v| "#{k}=#{CGI.escape v.to_s}"}.join("&")
+          h[:url] = "statuses?" + params.merge("sort_by" => h[:id], "sort_dir" => (sort_by == h[:id] && sort_dir == "asc") ? "desc" : "asc").map{|k, v| "#{k}=#{CGI.escape v.to_s}"}.join("&")
           h[:class] = "sorted_#{sort_dir}" if sort_by == h[:id]
         end
 
