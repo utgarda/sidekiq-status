@@ -6,7 +6,7 @@
 + Server middleware will now catches all exception types
 + Changes where server middleware is inserted in the chain
 + Reduces the amount of Redis calls made
-+ Adds pagination
++ Adds pagination / per page setting
 + Restores column sorting functionality
 
 **Version 0.7.0**
