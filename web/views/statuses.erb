@@ -27,15 +27,45 @@
 .btn-warning {
   background-image: linear-gradient(#f0ad4e, #eea236)
 }
+.nav-container {
+  display: flex;
+  line-height: 45px;
+}
+.nav-container .pull-right {
+  float: none !important;
+}
+.nav-container .pagination {
+  display: flex;
+  align-items: center;
+}
+.nav-container .per-page {
+  display: flex;
+  align-items: center;
+  margin: 20px 0 20px 10px;
+  white-space: nowrap;
+}
+.nav-container .per-page SELECT {
+  margin: 0 0 0 5px;
+}
 </style>
-
+<script>
+function setPerPage(select){
+  window.location = select.options[select.selectedIndex].getAttribute('data-url')
+}
+</script>
 <div style="display: flex; justify-content: space-between;">
   <h3 class="wi">Recent job statuses</h3>
-  <% if true %>
-    <div>
-      <%= erb :_paging, locals: { url: "#{root_path}statuses" } %>
+  <div class="nav-container">
+    <%= erb :_paging, locals: { url: "#{root_path}statuses" } %>
+    <div class="per-page">
+      Per page:
+      <select class="form-control" onchange="setPerPage(this)">
+        <% (Sidekiq::Status::Web.per_page_opts + ['all']).each do |num| %>
+        <option data-url="?<%= qparams(page: 1, per_page: num)%>" value="<%= num %>" <%= 'selected="selected"' if num.to_s == (params[:per_page] || @count) %>><%= num %></option>
+        <% end %>
+      </select>
     </div>
-  <% end %>
+  </div>
 </div>
 <table class="table table-hover table-bordered table-striped table-white">
   <tr>
