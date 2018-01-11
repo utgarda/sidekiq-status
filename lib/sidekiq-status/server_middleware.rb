@@ -1,6 +1,4 @@
-if Sidekiq.major_version < 5
-  require 'sidekiq/middleware/server/retry_jobs'
-else
+if Sidekiq.major_version >= 5
   require 'sidekiq/job_retry'
 end
 
@@ -8,9 +6,7 @@ module Sidekiq::Status
   # Should be in the server middleware chain
   class ServerMiddleware
 
-    DEFAULT_MAX_RETRY_ATTEMPTS = Sidekiq.major_version < 5 ?
-      Sidekiq::Middleware::Server::RetryJobs::DEFAULT_MAX_RETRY_ATTEMPTS :
-      Sidekiq::JobRetry::DEFAULT_MAX_RETRY_ATTEMPTS
+    DEFAULT_MAX_RETRY_ATTEMPTS = Sidekiq.major_version >= 5 ? Sidekiq::JobRetry::DEFAULT_MAX_RETRY_ATTEMPTS : 25
 
     include Storage
 
