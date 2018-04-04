@@ -71,8 +71,6 @@ class RetryAndFailJob < StubJob
 end
 
 class FailingHardJob < StubJob
-  sidekiq_options 'retry' => 1
-
   def perform()
     raise Exception
   end
