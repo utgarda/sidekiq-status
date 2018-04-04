@@ -60,7 +60,7 @@ module Sidekiq::Status
         try_count = if Sidekiq.major_version >= 5
                        msg['retry_count'] ? (msg['retry_count'] + 1) : 0
                     else
-                      msg['retry_count']
+                      msg['retry_count'] || 0
                     end
 
         if try_count < retry_attempts_from(msg['retry'], DEFAULT_MAX_RETRY_ATTEMPTS)
