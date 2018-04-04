@@ -62,8 +62,18 @@ class FailingJob < StubJob
   end
 end
 
-class FailingHardJob < StubJob
+class RetryAndFailJob < StubJob
+  sidekiq_options :retry => 1
+
   def perform
+    raise StandardError
+  end
+end
+
+class FailingHardJob < StubJob
+  sidekiq_options 'retry' => 1
+
+  def perform()
     raise Exception
   end
 end
