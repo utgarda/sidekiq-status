@@ -57,8 +57,13 @@ module Sidekiq::Status
     rescue Exception
       status = :failed
       if msg['retry']
-        retry_count = msg['retry_count'] || 0
-        if retry_count < retry_attempts_from(msg['retry'], DEFAULT_MAX_RETRY_ATTEMPTS)
+        try_count = if Sidekiq.major_version >= 5
+                       msg['retry_count'] ? (msg['retry_count'] + 1) : 0
+                    else
+                      msg['retry_count'] || 0
+                    end
+
+        if try_count < retry_attempts_from(msg['retry'], DEFAULT_MAX_RETRY_ATTEMPTS)
           status = :retrying
         end
       end
