@@ -31,6 +31,13 @@ class DataJob < StubJob
   end
 end
 
+class CustomDataJob < StubJob
+  def perform
+    store({mister_cat: 'meow'})
+  end
+end
+
+
 class ProgressJob < StubJob
   def perform
     total 500

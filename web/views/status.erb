@@ -65,6 +65,20 @@
         </p>
       </div>
     </div>
+
+    <% if @status["web"].any? %>
+      <hr>
+      <% @status["web"].each do |key, val| %>
+        <div class="row">
+          <div class="col-sm-2">
+            <strong><%= humanize_key(key) %></strong>
+          </div>
+          <div class="col-sm-10">
+            <p><%= val || "<i>none</i>" %></p>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
   </div>
 </div>
 

@@ -8,6 +8,7 @@ module Sidekiq::Status
 
     DEFAULT_PER_PAGE_OPTS = [25, 50, 100].freeze
     DEFAULT_PER_PAGE = 25
+    COMMON_STATUS_HASH_KEYS = %w(update_time jid status worker args label pct_complete)
 
     class << self
       def per_page_opts= arr
@@ -47,7 +48,16 @@ module Sidekiq::Status
         def add_details_to_status(status)
           status['label'] = status_label(status['status'])
           status["pct_complete"] ||= pct_complete(status)
+          status["web"] = process_custom_data(status)
           return status
+        end
+
+        def process_custom_data(hash)
+          hash.reject { |key, _| COMMON_STATUS_HASH_KEYS.include?(key) }
+        end
+
+        def humanize_key(key)
+          key.tr('_', ' ').capitalize
         end
 
         def pct_complete(status)

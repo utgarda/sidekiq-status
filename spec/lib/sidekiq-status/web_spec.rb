@@ -48,4 +48,15 @@ describe 'sidekiq status web' do
     expect(last_response).to be_not_found
     expect(last_response.body).to match(/That job can't be found/)
   end
+
+  it 'shows a single job in progress' do
+    capture_status_updates(2) do
+      CustomDataJob.perform_async
+    end
+
+    get "/statuses/#{job_id}"
+    expect(last_response).to be_ok
+    expect(last_response.body).to match(/Mister cat/)
+    expect(last_response.body).to match(/meow/)
+  end
 end
