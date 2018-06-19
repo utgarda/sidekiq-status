@@ -1,3 +1,6 @@
+**Version 1.0.2**
++ Fixes status not being set to `:failed` after retries
+
 **Version 1.0.1**
 + Fixes namespacing in `sidekiq-status/testing/inline`
 
