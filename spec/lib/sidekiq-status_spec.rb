@@ -148,6 +148,16 @@ describe Sidekiq::Status do
       expect_2_jobs_ttl_covers 1..Sidekiq::Status::DEFAULT_EXPIRY
     end
 
+    it "does jobs without a known class" do
+      seed_secure_random_with_job_ids
+      start_server(:expiration => expiration_param) do
+        expect {
+          Sidekiq::Client.new(Sidekiq.redis_pool).
+            push("class" => "NotAKnownClass", "args" => [])
+        }.to_not raise_error
+      end
+    end
+
     it "retries failed jobs" do
       allow(SecureRandom).to receive(:hex).and_return(retried_job_id)
       start_server do
