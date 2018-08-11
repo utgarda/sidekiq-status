@@ -1,3 +1,6 @@
+**Version 1.1.0**
++ Fixes the use case of multiple services sharing the same redis instance (#135)
+
 **Version 1.0.2**
 + Fixes status not being set to `:failed` after retries
 
