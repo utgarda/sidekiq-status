@@ -1,5 +1,8 @@
+**Version 1.1.1**
+* Uses SCAN rather than KEYS when retrieving job ids from Redis (#139)
+
 **Version 1.1.0**
-+ Fixes the use case of multiple services sharing the same redis instance (#135)
++ Fixes the use case of multiple services sharing the same Redis instance (#135)
 
 **Version 1.0.2**
 + Fixes status not being set to `:failed` after retries
@@ -37,14 +40,14 @@
 **Version 0.6.0**
 + Updated Web UI
   + Will have all job statuses, previously it was showing only :working status
-  + Bootstrap lables instead of badges for status
+  + Bootstrap labels instead of badges for status
   + Added Arguments column to statuses page
 + New :interrupted status added
 + Added way to specify :expiration for Sidekiq::Status::ClientMiddleware
-+ Bug fixes & Code cleaup
++ Bug fixes & Code cleanup
 
 **Version 0.5.3**
-+ some tweaks in web UI, separate redis namespace
++ some tweaks in web UI, separate Redis namespace
 
 **Version 0.5.2**
 + Sidekiq versions up to 3.3.* supported, jobs sorting options in web UI, more ruby versions
@@ -53,7 +56,7 @@
 + dependencies versions requirements relaxed
 
 **Version 0.5.0**
-+ Sidekiq v3 support, redis pools support
++ Sidekiq v3 support, Redis pools support
 
 **Version 0.4.0**
 + WebUI added, per-worker expiration setting enabled
