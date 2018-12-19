@@ -88,7 +88,7 @@ describe Sidekiq::Status::ServerMiddleware do
       start_server(:expiration => huge_expiration) do
         StubJob.perform_async arg1: 'val1'
       end
-      expect((Sidekiq::Status::DEFAULT_EXPIRY-1)..huge_expiration).to cover redis.ttl("sidekiq:status:#{job_id}")
+      expect((Sidekiq::Status::DEFAULT_EXPIRY+1)..huge_expiration).to cover redis.ttl("sidekiq:status:#{job_id}")
     end
 
     it "can be overwritten by worker expiration method" do
@@ -98,6 +98,20 @@ describe Sidekiq::Status::ServerMiddleware do
         StubJob.perform_async arg1: 'val1'
       end
       expect((huge_expiration+1)..overwritten_expiration).to cover redis.ttl("sidekiq:status:#{job_id}")
+    end
+    describe "sets :expiration with progress" do
+      10.times do
+        let!(:job_id) { SecureRandom.hex(12) }
+
+        it "overwrites default expiry value on status updates" do
+          start_server(:expiration => huge_expiration) do
+            SlowProgressJob.perform_async
+          end
+          expect(Sidekiq::Status.at(job_id)).to eq(10)
+          expect((Sidekiq::Status::DEFAULT_EXPIRY + 1)..huge_expiration).to cover redis.ttl("sidekiq:status:#{job_id}")
+          expect(Sidekiq::Status.message(job_id)).to eq('Starting')
+        end
+      end
     end
   end
 end
