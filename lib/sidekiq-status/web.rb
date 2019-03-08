@@ -8,7 +8,7 @@ module Sidekiq::Status
 
     DEFAULT_PER_PAGE_OPTS = [25, 50, 100].freeze
     DEFAULT_PER_PAGE = 25
-    COMMON_STATUS_HASH_KEYS = %w(update_time jid status worker args label pct_complete)
+    COMMON_STATUS_HASH_KEYS = %w(update_time jid status worker args label pct_complete total at message)
 
     class << self
       def per_page_opts= arr
