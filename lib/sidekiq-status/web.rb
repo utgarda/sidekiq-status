@@ -85,8 +85,11 @@ module Sidekiq::Status
 
       app.get '/statuses' do
 
-        namespace_jids = Sidekiq.redis{ |conn| conn.keys('sidekiq:status:*') }
-        jids = namespace_jids.map{ |id_namespace| id_namespace.split(':').last }
+        jids = Sidekiq.redis do |conn|
+          conn.scan_each(match: 'sidekiq:status:*', count: 100).map do |key|
+            key.split(':').last
+          end.uniq
+        end
         @statuses = []
 
         jids.each do |jid|

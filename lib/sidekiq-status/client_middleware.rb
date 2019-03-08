@@ -21,10 +21,16 @@ module Sidekiq::Status
 
       # Determine the actual job class
       klass = msg["args"][0]["job_class"] || worker_class rescue worker_class
-      job_class = klass.is_a?(Class) ? klass : Module.const_get(klass)
+      job_class = if klass.is_a?(Class)
+                    klass
+                  elsif Module.const_defined?(klass)
+                    Module.const_get(klass)
+                  else
+                    nil
+                  end
 
       # Store data if the job is a Sidekiq::Status::Worker
-      if job_class.ancestors.include?(Sidekiq::Status::Worker)
+      if job_class && job_class.ancestors.include?(Sidekiq::Status::Worker)
         initial_metadata = {
           jid: msg['jid'],
           status: :queued,

@@ -8,6 +8,7 @@ describe Sidekiq::Status do
   let!(:unused_id) { SecureRandom.hex(12) }
   let!(:plain_sidekiq_job_id) { SecureRandom.hex(12) }
   let!(:retried_job_id) { SecureRandom.hex(12) }
+  let!(:retry_and_fail_job_id) { SecureRandom.hex(12) }
 
   describe ".status, .working?, .complete?" do
     it "gets job status by id as symbol" do
@@ -147,6 +148,16 @@ describe Sidekiq::Status do
       expect_2_jobs_ttl_covers 1..Sidekiq::Status::DEFAULT_EXPIRY
     end
 
+    it "does jobs without a known class" do
+      seed_secure_random_with_job_ids
+      start_server(:expiration => expiration_param) do
+        expect {
+          Sidekiq::Client.new(Sidekiq.redis_pool).
+            push("class" => "NotAKnownClass", "args" => [])
+        }.to_not raise_error
+      end
+    end
+
     it "retries failed jobs" do
       allow(SecureRandom).to receive(:hex).and_return(retried_job_id)
       start_server do
@@ -171,6 +182,28 @@ describe Sidekiq::Status do
         expect(Sidekiq::Status.status(retried_job_id)).to eq(:complete)
         expect(Sidekiq::Status.complete?(retried_job_id)).to be_truthy
         expect(Sidekiq::Status::retrying?(retried_job_id)).to be_falsey
+      end
+    end
+
+    it "marks retried jobs as failed once they do eventually fail" do
+      allow(SecureRandom).to receive(:hex).and_return(retry_and_fail_job_id)
+      start_server do
+        expect(
+          capture_status_updates(3) {
+            expect(RetryAndFailJob.perform_async).to eq(retry_and_fail_job_id)
+          }
+        ).to eq([retry_and_fail_job_id] * 3)
+
+        expect(Sidekiq::Status.status(retry_and_fail_job_id)).to eq(:retrying)
+      end
+
+      # restarting and waiting for the job to fail
+      start_server do
+        expect(capture_status_updates(3) {}).to eq([retry_and_fail_job_id] * 3)
+
+        expect(Sidekiq::Status.status(retry_and_fail_job_id)).to eq(:failed)
+        expect(Sidekiq::Status.failed?(retry_and_fail_job_id)).to be_truthy
+        expect(Sidekiq::Status::retrying?(retry_and_fail_job_id)).to be_falsey
       end
     end
 

@@ -35,7 +35,7 @@ def redis_thread messages_limit, *channels
     messages = []
     Sidekiq.redis do |conn|
       puts "Subscribing to #{channels} for #{messages_limit.to_s.bold} messages".cyan if ENV['DEBUG']
-      conn.subscribe_with_timeout 30, *channels do |on|
+      conn.subscribe_with_timeout 60, *channels do |on|
         on.subscribe do |ch, subscriptions|
           puts "Subscribed to #{ch}".cyan if ENV['DEBUG']
           if subscriptions == channels.size
