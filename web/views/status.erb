@@ -74,7 +74,11 @@
             <strong><%= humanize_key(key) %></strong>
           </div>
           <div class="col-sm-10">
-            <p><%= val || "<i>none</i>" %></p>
+            <% if val && val.include?("\n") %>
+              <pre><%= val %></pre>
+            <% else  %>
+              <p><%= val || "<i>none</i>" %></p>
+            <% end %>
           </div>
         </div>
       <% end %>
