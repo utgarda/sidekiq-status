@@ -44,7 +44,7 @@ describe 'sidekiq status web' do
   end
 
   it 'shows custom data for a single job' do
-    capture_status_updates(2) do
+    capture_status_updates(3) do
       CustomDataJob.perform_async
     end
 
