@@ -48,7 +48,7 @@ module Sidekiq::Status
         def add_details_to_status(status)
           status['label'] = status_label(status['status'])
           status["pct_complete"] ||= pct_complete(status)
-          status["web"] = process_custom_data(status)
+          status["custom"] = process_custom_data(status)
           return status
         end
 

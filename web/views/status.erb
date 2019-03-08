@@ -66,9 +66,9 @@
       </div>
     </div>
 
-    <% if @status["web"].any? %>
+    <% if @status["custom"].any? %>
       <hr>
-      <% @status["web"].each do |key, val| %>
+      <% @status["custom"].each do |key, val| %>
         <div class="row">
           <div class="col-sm-2">
             <strong><%= humanize_key(key) %></strong>
