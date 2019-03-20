@@ -1,5 +1,5 @@
 **Version 1.1.2**
-* Job detail pages now show custom data keys (#139)
+* Job detail pages now show custom data keys (#146)
 
 **Version 1.1.1**
 * Uses SCAN rather than KEYS when retrieving job ids from Redis (#139)
