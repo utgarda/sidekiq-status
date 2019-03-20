@@ -71,7 +71,7 @@
       <% @status["custom"].each do |key, val| %>
         <div class="row">
           <div class="col-sm-2">
-            <strong><%= humanize_key(key) %></strong>
+            <strong><%= key %></strong>
           </div>
           <div class="col-sm-10">
             <% if val && val.include?("\n") %>

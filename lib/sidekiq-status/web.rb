@@ -56,10 +56,6 @@ module Sidekiq::Status
           hash.reject { |key, _| COMMON_STATUS_HASH_KEYS.include?(key) }
         end
 
-        def humanize_key(key)
-          key.tr('_', ' ').capitalize
-        end
-
         def pct_complete(status)
           return 100 if status['status'] == 'complete'
           Sidekiq::Status::pct_complete(status['jid']) || 0

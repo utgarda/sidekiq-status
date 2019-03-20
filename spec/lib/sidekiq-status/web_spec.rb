@@ -50,7 +50,7 @@ describe 'sidekiq status web' do
 
     get "/statuses/#{job_id}"
     expect(last_response).to be_ok
-    expect(last_response.body).to match(/Mister cat/)
+    expect(last_response.body).to match(/mister_cat/)
     expect(last_response.body).to match(/meow/)
   end
 
