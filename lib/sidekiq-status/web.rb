@@ -105,6 +105,10 @@ module Sidekiq::Status
           @statuses = @statuses.sort { |y,x| (x[sort_by] <=> y[sort_by]) || 1 }
         end
 
+        if params[:status] && params[:status] != "all"
+          @statuses = @statuses.select {|job_status| job_status["status"] == params[:status] }
+        end
+
         # Sidekiq pagination
         @total_size = @statuses.count
         @count = params[:per_page] ? params[:per_page].to_i : Sidekiq::Status::Web.default_per_page
@@ -158,7 +162,7 @@ end
 
 require 'sidekiq/web' unless defined?(Sidekiq::Web)
 Sidekiq::Web.register(Sidekiq::Status::Web)
-["per_page", "sort_by", "sort_dir"].each do |key|
+["per_page", "sort_by", "sort_dir", "status"].each do |key|
   Sidekiq::WebHelpers::SAFE_QPARAMS.push(key)
 end
 if Sidekiq::Web.tabs.is_a?(Array)
