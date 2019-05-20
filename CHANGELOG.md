@@ -1,3 +1,6 @@
+**Version 1.1.3**
+* Adds a job status filter to the UI (#149)
+
 **Version 1.1.2**
 * Job detail pages now show custom data keys (#146)
 
