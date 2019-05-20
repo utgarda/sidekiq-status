@@ -31,6 +31,27 @@ describe 'sidekiq status web' do
     expect(last_response.body).to match(/working/)
   end
 
+  it 'allows filtering the list of jobs by status' do
+    capture_status_updates(2) do
+      LongJob.perform_async(0.5)
+    end
+
+    get '/statuses?status=working'
+    expect(last_response).to be_ok
+    expect(last_response.body).to match(/#{job_id}/)
+    expect(last_response.body).to match(/LongJob/)
+    expect(last_response.body).to match(/working/)
+  end
+
+  it 'allows filtering the list of jobs by completed status' do
+    capture_status_updates(2) do
+      LongJob.perform_async(0.5)
+    end
+    get '/statuses?status=completed'
+    expect(last_response).to be_ok
+    expect(last_response.body).to_not match(/LongJob/)
+  end
+
   it 'shows a single job in progress' do
     capture_status_updates(2) do
       LongJob.perform_async(1, 'another argument')
