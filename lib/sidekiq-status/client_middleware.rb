@@ -18,16 +18,10 @@ module Sidekiq::Status
     # @param [String] queue the queue's name
     # @param [ConnectionPool] redis_pool optional redis connection pool
     def call(worker_class, msg, queue, redis_pool=nil)
-
       # Determine the actual job class
       klass = msg["args"][0]["job_class"] || worker_class rescue worker_class
-      job_class = if klass.is_a?(Class)
-                    klass
-                  elsif Module.const_defined?(klass)
-                    Module.const_get(klass)
-                  else
-                    nil
-                  end
+
+      job_class = resolve_job_class(klass)
 
       # Store data if the job is a Sidekiq::Status::Worker
       if job_class && job_class.ancestors.include?(Sidekiq::Status::Worker)
@@ -37,11 +31,11 @@ module Sidekiq::Status
           worker: Sidekiq::Job.new(msg, queue).display_class,
           args: display_args(msg, queue)
         }
+
         store_for_id msg['jid'], initial_metadata, job_class.new.expiration || @expiration, redis_pool
       end
 
       yield
-
     end
 
     def display_args(msg, queue)
@@ -50,6 +44,22 @@ module Sidekiq::Status
     rescue Exception => e
       # For Sidekiq ~> 2.7
       return msg['args'].to_a.empty? ? nil : msg['args'].to_json
+    end
+    
+    def resolve_job_class(klass)
+      return klass if klass.is_a?(Class)
+
+      load_constant(klass)
+    end
+
+    # There is a condition where Module.const_defined? will return false if the Module has not yet been loaded.  This
+    # is can lead to some confusing debug.  Instead, this will attempt to load the const, and if that fails defer
+    # to #const_defiend? to return the proper result boolean response.
+    ##
+    def load_constant(name)
+      Module.const_get(name)
+    rescue NameError
+      nil
     end
   end
 
