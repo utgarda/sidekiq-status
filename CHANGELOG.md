@@ -1,3 +1,6 @@
+**Version 1.1.4**
+* Ensures jobs without sidekiq-status do not record status exceptions (#150)
+
 **Version 1.1.3**
 * Adds a job status filter to the UI (#149)
 
