@@ -12,11 +12,11 @@ describe Sidekiq::Status::ServerMiddleware do
         thread = redis_thread 4, "status_updates", "job_messages_#{job_id}"
         expect(ConfirmationJob.perform_async arg1: 'val1').to eq(job_id)
         expect(thread.value).to eq([
-          job_id,
-          job_id,
-          "while in #perform, status = working",
-          job_id
-        ])
+                                     job_id,
+                                     job_id,
+                                     "while in #perform, status = working",
+                                     job_id
+                                   ])
       end
       expect(redis.hget("sidekiq:status:#{job_id}", :status)).to eq('complete')
       expect(Sidekiq::Status::complete?(job_id)).to be_truthy
@@ -26,8 +26,8 @@ describe Sidekiq::Status::ServerMiddleware do
       allow(SecureRandom).to receive(:hex).once.and_return(job_id)
       start_server do
         expect(capture_status_updates(3) {
-          expect(FailingJob.perform_async).to eq(job_id)
-        }).to eq([job_id]*3)
+                 expect(FailingJob.perform_async).to eq(job_id)
+               }).to eq([job_id]*3)
       end
       expect(redis.hget("sidekiq:status:#{job_id}", :status)).to eq('failed')
       expect(Sidekiq::Status::failed?(job_id)).to be_truthy
@@ -37,11 +37,29 @@ describe Sidekiq::Status::ServerMiddleware do
       allow(SecureRandom).to receive(:hex).once.and_return(job_id)
       start_server do
         expect(capture_status_updates(3) {
-          expect(FailingHardJob.perform_async).to eq(job_id)
-        }).to eq([job_id]*3)
+                 expect(FailingHardJob.perform_async).to eq(job_id)
+               }).to eq([job_id]*3)
       end
       expect(redis.hget("sidekiq:status:#{job_id}", :status)).to eq('failed')
       expect(Sidekiq::Status::failed?(job_id)).to be_truthy
+    end
+
+    context "when Sidekiq::Status::Worker is not included in the job" do
+      it "should not set a failed status" do
+        allow(SecureRandom).to receive(:hex).once.and_return(job_id)
+        start_server do
+          expect(FailingNoStatusJob.perform_async).to eq(job_id)
+        end
+        expect(redis.hget("sidekiq:status:#{job_id}", :status)).to be_nil
+      end
+
+      it "should not set any status when Exception raised" do
+        allow(SecureRandom).to receive(:hex).once.and_return(job_id)
+        start_server do
+          expect(FailingHardNoStatusJob.perform_async).to eq(job_id)
+        end
+        expect(redis.hget("sidekiq:status:#{job_id}", :status)).to be_nil
+      end
     end
 
     context "sets interrupted status" do
@@ -49,8 +67,8 @@ describe Sidekiq::Status::ServerMiddleware do
         allow(SecureRandom).to receive(:hex).once.and_return(job_id)
         start_server do
           expect(capture_status_updates(3) {
-            expect(ExitedJob.perform_async).to eq(job_id)
-          }).to eq([job_id]*3)
+                   expect(ExitedJob.perform_async).to eq(job_id)
+                 }).to eq([job_id]*3)
         end
         expect(redis.hget("sidekiq:status:#{job_id}", :status)).to eq('interrupted')
         expect(Sidekiq::Status::interrupted?(job_id)).to be_truthy
@@ -60,8 +78,8 @@ describe Sidekiq::Status::ServerMiddleware do
         allow(SecureRandom).to receive(:hex).once.and_return(job_id)
         start_server do
           expect(capture_status_updates(3) {
-            expect(InterruptedJob.perform_async).to eq(job_id)
-          }).to eq([job_id]*3)
+                   expect(InterruptedJob.perform_async).to eq(job_id)
+                 }).to eq([job_id]*3)
         end
         expect(redis.hget("sidekiq:status:#{job_id}", :status)).to eq('interrupted')
         expect(Sidekiq::Status::interrupted?(job_id)).to be_truthy

@@ -10,6 +10,16 @@ class StubJob
   end
 end
 
+class StubNoStatusJob
+  include Sidekiq::Worker
+
+  sidekiq_options 'retry' => false
+
+  def perform(*args)
+  end
+end
+
+
 class ExpiryJob < StubJob
   def expiration
     15
@@ -69,6 +79,12 @@ class FailingJob < StubJob
   end
 end
 
+class FailingNoStatusJob < StubNoStatusJob
+  def perform
+    raise StandardError
+  end
+end
+
 class RetryAndFailJob < StubJob
   sidekiq_options retry: 1
 
@@ -78,6 +94,12 @@ class RetryAndFailJob < StubJob
 end
 
 class FailingHardJob < StubJob
+  def perform
+    raise Exception
+  end
+end
+
+class FailingHardNoStatusJob < StubNoStatusJob
   def perform
     raise Exception
   end

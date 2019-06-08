@@ -61,7 +61,7 @@ module Sidekiq::Status
           status = :retrying
         end
       end
-      store_status worker.jid, status, expiry
+      store_status(worker.jid, status, expiry) if job_class && job_class.ancestors.include?(Sidekiq::Status::Worker)
       raise
     end
 
