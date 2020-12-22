@@ -231,6 +231,21 @@ require 'sidekiq/web'
 require 'sidekiq-status/web'
 ```
 
+#### Middleware
+
+After that, you will need to configure your middleware with `Rack::MethodOverride` to make the `Remove` and `Retry Now` buttons to work properly.
+
+``` ruby
+Rails.application.configure do
+  .
+  .
+  .
+  config.middleware.use(Rack::MethodOverride)
+end
+```
+
+If you don't change your configuration, you will receive a `404 Not Found` error when you try to use those buttons.
+
 ### Testing
 
 Drawing analogy from [sidekiq testing by inlining](https://github.com/mperham/sidekiq/wiki/Testing#testing-workers-inline),
