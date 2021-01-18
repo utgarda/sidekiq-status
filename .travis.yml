@@ -9,6 +9,7 @@ gemfile:
   - gemfiles/sidekiq_3.x.gemfile
   - gemfiles/sidekiq_4.x.gemfile
   - gemfiles/sidekiq_5.x.gemfile
+  - gemfiles/sidekiq_6.x.gemfile
 before_install:
   - gem update --system
   - gem update bundler
