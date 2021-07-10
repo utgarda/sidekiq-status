@@ -56,6 +56,13 @@ class ProgressJob < StubJob
   end
 end
 
+class SlowProgressJob < StubJob
+  def perform
+    at 10, 'Starting'
+    sleep 5
+  end
+end
+
 class ConfirmationJob < StubJob
   def perform(*args)
     Sidekiq.redis do |conn|
